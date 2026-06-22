@@ -115,11 +115,21 @@ npx expo start --ios
 
 > Sesli mod (ElevenLabs) ve Video mod (D-ID) sonraki fazda eklenecek.
 
+**5. Adım — Sürpriz Kutusu** ✅
+- [x] Sürpriz ekle (admin): başlık, mesaj, foto (opsiyonel), açılma tipi, tarih
+- [x] Açılma tipleri: `date` (tarihte) · `sad` (kötü hissedince) · `miss` (özleyince) · `before_trip` (tatile 3 gün kala)
+- [x] Kilitli / açılabilir / açılmış kart durumları (gizemli koyu kart ↔ canlı gradyan)
+- [x] `react-native-reanimated` ile açılma animasyonu (scale + fade)
+- [x] Hızlı açma butonları: "Kötü hissediyorum 💙" / "Seni özledim 🥺"
+- [x] `before_trip` için `calendarStore`'dan en yakın "tatil" etkinliği okunur
+- [x] Yerel kalıcılık: `store/surpriseStore.ts`
+
+> "Gizli notlar / belli tarihte açılır" özelliği `date` tipli sürprizlerle karşılanır. Faz 2'de Supabase'e taşınınca admin (sen) eklediğinde sevgilinin telefonunda görünecek.
+
 ## Sıradaki Adımlar
 
-1. **Sürprizler** — kilitli kartlar + açılma koşulları (+ gizli notlar)
-2. **Feyzi AI — Sesli/Video** — ElevenLabs (TTS) + D-ID (konuşan video)
-3. **Backend** — Supabase (auth + postgres + storage)
+1. **Feyzi AI — Sesli/Video** — ElevenLabs (TTS) + D-ID (konuşan video)
+2. **Backend** — Supabase (auth + postgres + storage); sürprizleri admin (sen) ekleyince sevgilinde görünmesi
 
 ---
 
