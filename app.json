@@ -12,6 +12,7 @@
       "bundleIdentifier": "com.feyzi.sevgilimcepte",
       "infoPlist": {
         "NSPhotoLibraryUsageDescription": "Anılarına fotoğraf eklemek için galerine erişmemiz gerekiyor 💕",
+        "NSCameraUsageDescription": "Anına yeni bir fotoğraf çekmek için kameraya erişmemiz gerekiyor 📸",
         "NSCalendarsUsageDescription": "Özel günlerinizi Apple Takvim'e aktarmak için takvim erişimi gerekiyor.",
         "NSLocationWhenInUseUsageDescription": "Anılarınıza gittiğiniz yerleri eklemek için konum erişimi gerekiyor."
       }
@@ -36,6 +37,19 @@
         "expo-notifications",
         {
           "color": "#FF6B9D"
+        }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Anılarına fotoğraf eklemek için galerine erişmemiz gerekiyor 💕",
+          "cameraPermission": "Anına yeni bir fotoğraf çekmek için kameraya erişmemiz gerekiyor 📸"
+        }
+      ],
+      [
+        "expo-location",
+        {
+          "locationWhenInUsePermission": "Anılarınıza gittiğiniz yerleri eklemek için konum erişimi gerekiyor."
         }
       ]
     ],

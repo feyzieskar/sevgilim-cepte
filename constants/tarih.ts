@@ -36,3 +36,17 @@ export function tarihKisa(iso: string): string {
   const d = isoToDate(iso);
   return `${d.getDate()} ${AYLAR[d.getMonth()]}`;
 }
+
+// Bir tarihin kaç yıl önce olduğunu döndürür (bu yıl = 0).
+export function yilOnce(iso: string, bugun: Date = new Date()): number {
+  const yil = isoToDate(iso).getFullYear();
+  return bugun.getFullYear() - yil;
+}
+
+// "Geçen yıl bugün" / "3 yıl önce bugün" / "Bugün" gibi metin üretir.
+export function gunMetni(iso: string, bugun: Date = new Date()): string {
+  const fark = yilOnce(iso, bugun);
+  if (fark <= 0) return "Bugün";
+  if (fark === 1) return "Geçen yıl bugün";
+  return `${fark} yıl önce bugün`;
+}

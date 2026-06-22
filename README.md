@@ -92,12 +92,23 @@ npx expo start --ios
 - [x] Apple Takvim'e Aktar (`expo-calendar`)
 - [x] Yerel kalıcılık: Zustand + AsyncStorage (`store/calendarStore.ts`)
 
+**3. Adım — Anılar** ✅
+- [x] Anı ekle/düzenle: fotoğraf (`expo-image-picker` galeri/kamera) + tarih + not + konum
+- [x] Zaman tüneli (en yeni üstte) fotoğraf kartları
+- [x] "Bu gün ne olmuştu?" — geçmiş yıl eşleşmeleri ("Geçen yıl bugün…")
+- [x] Favoriler: kalp ile favorile, "Favoriler" filtresi
+- [x] Harita görünümü (`react-native-maps`) — konumlu anılar pin + önizleme
+- [x] Konum (`expo-location`) — "Konumumu kullan" + ters jeokodlama
+- [x] Anı detay ekranı (`app/ani/[id].tsx`): büyük foto, mini harita, düzenle/sil
+- [x] Yerel kalıcılık: `store/memoryStore.ts`
+
+> Notlar: Fotoğraflar şimdilik cihazdaki yerel URI olarak saklanır (sonra Supabase Storage'a taşınacak). `react-native-maps` ve `expo-image-picker`/kamera Expo Go'da sınırlıdır; tam test için **development build** önerilir. "Gizli notlar / belli tarihte açılan anılar" özelliği Bölüm 5 (Sürpriz Kutusu) ile gelecek.
+
 ## Sıradaki Adımlar
 
-1. **Anılar** — fotoğraf, timeline, harita, gizli notlar
-2. **Feyzi AI** — OpenAI GPT-4o + modlar; `services/feyziAi.ts` içindeki kişilik prompt'unu doldur
-3. **Sürprizler** — kilitli kartlar + açılma koşulları
-4. **Backend** — Supabase (auth + postgres + storage)
+1. **Feyzi AI** — OpenAI GPT-4o + modlar; `services/feyziAi.ts` içindeki kişilik prompt'unu doldur
+2. **Sürprizler** — kilitli kartlar + açılma koşulları (+ gizli notlar)
+3. **Backend** — Supabase (auth + postgres + storage)
 
 ---
 
