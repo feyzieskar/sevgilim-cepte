@@ -287,9 +287,9 @@ create policy "chat_delete" on public.chat_messages
 -- güncellensin diye bu tabloları "supabase_realtime" yayınına ekleriz.
 alter publication supabase_realtime add table public.events;
 alter publication supabase_realtime add table public.surprises;
--- (İstersen memories ve love_reasons da eklenebilir)
+alter publication supabase_realtime add table public.love_reasons;
+-- (İstersen memories de eklenebilir)
 -- alter publication supabase_realtime add table public.memories;
--- alter publication supabase_realtime add table public.love_reasons;
 
 
 -- ====================================================================

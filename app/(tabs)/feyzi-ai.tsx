@@ -5,7 +5,7 @@
 // - Mod seçici (Normal / Moral / Plan / Anı) + pasif "Sesli/Video"
 // - Mesaj balonları (Feyzi solda gradyan, kullanıcı sağda nötr)
 // - "Feyzi yazıyor..." göstergesi, alt mesaj girişi
-// Sohbet geçmişi cihazda kalıcıdır (Zustand + AsyncStorage).
+// Sohbet geçmişi Supabase'de kişisel olarak saklanır (partner görmez).
 // ====================================================================
 
 import { Ionicons } from "@expo/vector-icons";

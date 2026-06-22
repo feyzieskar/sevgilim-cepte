@@ -12,6 +12,8 @@ import { Tabs } from "expo-router";
 import { useEffect } from "react";
 
 import { useCalendarStore } from "@/store/calendarStore";
+import { useChatStore } from "@/store/chatStore";
+import { useLoveReasonStore } from "@/store/loveReasonStore";
 import { useMemoryStore } from "@/store/memoryStore";
 import { useSurpriseStore } from "@/store/surpriseStore";
 import { usePalet } from "@/store/useThemeStore";
@@ -21,8 +23,11 @@ export default function TabsLayout() {
   const fetchEvents = useCalendarStore((s) => s.fetchEvents);
   const fetchMemories = useMemoryStore((s) => s.fetchMemories);
   const fetchSurprises = useSurpriseStore((s) => s.fetchSurprises);
+  const fetchReasons = useLoveReasonStore((s) => s.fetchReasons);
+  const fetchMessages = useChatStore((s) => s.fetchMessages);
   const subscribeEvents = useCalendarStore((s) => s.subscribeRealtime);
   const subscribeSurprises = useSurpriseStore((s) => s.subscribeRealtime);
+  const subscribeReasons = useLoveReasonStore((s) => s.subscribeRealtime);
 
   // Giriş sonrası uygulama açılınca bulut verisini bir kez çek.
   // Böylece hem ana ekran kartları hem ilgili sekmeler aynı veriyi kullanır.
@@ -30,17 +35,21 @@ export default function TabsLayout() {
     fetchEvents();
     fetchMemories();
     fetchSurprises();
-  }, [fetchEvents, fetchMemories, fetchSurprises]);
+    fetchReasons();
+    fetchMessages();
+  }, [fetchEvents, fetchMemories, fetchSurprises, fetchReasons, fetchMessages]);
 
-  // Realtime: partner bir etkinlik/sürpriz eklediğinde ekran anında güncellenir.
+  // Realtime: partner etkinlik/sürpriz/sevme sebebi eklediğinde ekran anında güncellenir.
   useEffect(() => {
     const unsubEvents = subscribeEvents();
     const unsubSurprises = subscribeSurprises();
+    const unsubReasons = subscribeReasons();
     return () => {
       unsubEvents();
       unsubSurprises();
+      unsubReasons();
     };
-  }, [subscribeEvents, subscribeSurprises]);
+  }, [subscribeEvents, subscribeSurprises, subscribeReasons]);
 
   return (
     <Tabs
