@@ -1,0 +1,5 @@
+/* NativeWind / Tailwind giriş dosyası
+   Bu üç katman Tailwind'in tüm yardımcı sınıflarını üretir. */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;

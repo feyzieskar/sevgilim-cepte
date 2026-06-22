@@ -1,0 +1,34 @@
+{
+  "expo": {
+    "name": "Sevgilim Cepte",
+    "slug": "sevgilim-cepte",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "scheme": "sevgilimcepte",
+    "userInterfaceStyle": "automatic",
+    "newArchEnabled": true,
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.feyzi.sevgilimcepte",
+      "infoPlist": {
+        "NSPhotoLibraryUsageDescription": "Anılarına fotoğraf eklemek için galerine erişmemiz gerekiyor 💕",
+        "NSCalendarsUsageDescription": "Özel günlerinizi Apple Takvim'e aktarmak için takvim erişimi gerekiyor.",
+        "NSLocationWhenInUseUsageDescription": "Anılarınıza gittiğiniz yerleri eklemek için konum erişimi gerekiyor."
+      }
+    },
+    "android": {
+      "package": "com.feyzi.sevgilimcepte"
+    },
+    "web": {
+      "bundler": "metro",
+      "output": "static"
+    },
+    "plugins": [
+      "expo-router",
+      "expo-secure-store"
+    ],
+    "experiments": {
+      "typedRoutes": true
+    }
+  }
+}
