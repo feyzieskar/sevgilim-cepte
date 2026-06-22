@@ -19,21 +19,25 @@ import { GununMesajiKarti } from "@/components/cards/GununMesajiKarti";
 import { OzelGunKarti } from "@/components/cards/OzelGunKarti";
 import { SevmeSebebiKarti } from "@/components/cards/SevmeSebebiKarti";
 import { EkranBasligi } from "@/components/ui/EkranBasligi";
+import { useGoruntulenenAd } from "@/store/authStore";
 import { usePalet } from "@/store/useThemeStore";
 
 export default function AnaEkran() {
   const palet = usePalet();
+  const ad = useGoruntulenenAd();
 
-  // Selamlama metnini saate göre belirle
+  // Selamlama metnini saate göre belirle (giriş yapan kullanıcının adıyla)
   const saat = new Date().getHours();
-  const selam =
+  const zamanSelam =
     saat < 6
-      ? "İyi geceler 🌙"
+      ? "İyi geceler"
       : saat < 12
-        ? "Günaydın aşkım ☀️"
+        ? "Günaydın"
         : saat < 18
-          ? "İyi günler 🌸"
-          : "İyi akşamlar 🌆";
+          ? "İyi günler"
+          : "İyi akşamlar";
+  const emoji = saat < 6 ? "🌙" : saat < 12 ? "☀️" : saat < 18 ? "🌸" : "🌆";
+  const selam = ad ? `${zamanSelam} ${ad} ${emoji}` : `${zamanSelam} ${emoji}`;
 
   return (
     <SafeAreaView

@@ -117,3 +117,16 @@ export const useAuthStore = create<AuthState>((set) => ({
     set({ session: null, user: null });
   },
 }));
+
+// Oturumdaki kullanıcının görünen adını döndürür.
+// Sırasıyla: kayıt sırasında girilen ad -> e-postanın @ öncesi -> "Sevgilim".
+export function useGoruntulenenAd(): string {
+  return useAuthStore((s) => {
+    const u = s.user;
+    if (!u) return "";
+    const ad = (u.user_metadata?.display_name as string | undefined)?.trim();
+    if (ad) return ad;
+    const eposta = u.email?.split("@")[0];
+    return eposta && eposta.length > 0 ? eposta : "Sevgilim";
+  });
+}
