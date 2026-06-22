@@ -104,17 +104,36 @@ npx expo start --ios
 
 > Notlar: Fotoğraflar şimdilik cihazdaki yerel URI olarak saklanır (sonra Supabase Storage'a taşınacak). `react-native-maps` ve `expo-image-picker`/kamera Expo Go'da sınırlıdır; tam test için **development build** önerilir. "Gizli notlar / belli tarihte açılan anılar" özelliği Bölüm 5 (Sürpriz Kutusu) ile gelecek.
 
+**4. Adım — Feyzi AI (metin sohbeti)** ✅
+- [x] OpenAI GPT-4o ile metin sohbeti (`services/feyziService.ts`, doğrudan fetch)
+- [x] Mesaj balonları (Feyzi gradyan / kullanıcı nötr), avatar, "Feyzi yazıyor..."
+- [x] 4 mod: Normal / Moral / Plan / Anı (Anı modu son anıları context'e ekler)
+- [x] Sesli & Video modları "Yakında" etiketiyle pasif
+- [x] Sohbet geçmişi kalıcı (`store/chatStore.ts`)
+- [x] API anahtarı: `.env` (`OPENAI_API_KEY`) → `app.config.js` extra → `expo-secure-store`
+- [x] Düzenlenebilir promptlar: `constants/feyziPrompts.ts`
+
+> Sesli mod (ElevenLabs) ve Video mod (D-ID) sonraki fazda eklenecek.
+
 ## Sıradaki Adımlar
 
-1. **Feyzi AI** — OpenAI GPT-4o + modlar; `services/feyziAi.ts` içindeki kişilik prompt'unu doldur
-2. **Sürprizler** — kilitli kartlar + açılma koşulları (+ gizli notlar)
+1. **Sürprizler** — kilitli kartlar + açılma koşulları (+ gizli notlar)
+2. **Feyzi AI — Sesli/Video** — ElevenLabs (TTS) + D-ID (konuşan video)
 3. **Backend** — Supabase (auth + postgres + storage)
 
 ---
 
 ## API Anahtarları
 
-`.env.example` dosyasını `.env` olarak kopyalayıp anahtarlarını gir. Gizli anahtarlar için uygulama içinde `expo-secure-store` kullanılacaktır. `.env` dosyası git'e **dahil edilmez**.
+`.env.example` dosyasını `.env` olarak kopyalayıp anahtarlarını gir. `.env` dosyası git'e **dahil edilmez**.
+
+Feyzi AI sohbetinin çalışması için `.env` içine OpenAI anahtarını ekle:
+
+```
+OPENAI_API_KEY=sk-...
+```
+
+Bu anahtar `app.config.js` ile uygulamaya geçer ve ilk açılışta `expo-secure-store`'a yazılıp oradan okunur. `.env`'i değiştirdiğinde Metro'yu önbelleği temizleyerek yeniden başlat: `npx expo start -c`.
 
 ---
 
@@ -124,4 +143,4 @@ npx expo start --ios
 - **Günün mesajları**: `data/gununMesajlari.ts`
 - **Özel günler** (yıldönümü, doğum günleri): `data/ozelGunler.ts` — tarihleri kendine göre güncelle
 - **Renkler**: `constants/theme.ts` ve `tailwind.config.js`
-- **Feyzi kişiliği**: `services/feyziAi.ts` → `FEYZI_KISILIK_PROMPT`
+- **Feyzi kişiliği & mod promptları**: `constants/feyziPrompts.ts` → `FEYZI_BASE_PERSONALITY` ve `MODE_PROMPTS`
