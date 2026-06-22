@@ -25,7 +25,19 @@
     },
     "plugins": [
       "expo-router",
-      "expo-secure-store"
+      "expo-secure-store",
+      [
+        "expo-calendar",
+        {
+          "calendarPermission": "Özel günlerinizi Apple Takvim'e aktarmak için takvim erişimi gerekiyor."
+        }
+      ],
+      [
+        "expo-notifications",
+        {
+          "color": "#FF6B9D"
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true

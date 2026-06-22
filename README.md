@@ -74,21 +74,30 @@ npx expo start --ios
 
 ---
 
-## Tamamlananlar (1. Adım)
+## Tamamlananlar
 
+**1. Adım — İskelet**
 - [x] Expo + TypeScript + expo-router + NativeWind iskeleti
 - [x] Romantik tema (soft pembe #FF6B9D + lila #A06CD5), açık/koyu mod
 - [x] 5 sekmeli alt navigasyon + iskelet ekranlar
-- [x] Ana ekran 5 kart (mock veri ile çalışır):
-  - Bugünkü Etkinlik · Sonraki Özel Gün · Günün Mesajı · Feyzi AI'a Sor · Sevme Sebebim
+- [x] Ana ekran 5 kart (mock veri ile çalışır)
+
+**2. Adım — Ortak Takvim** ✅
+- [x] Aylık takvim görünümü (`react-native-calendars`), kategori renginde noktalar
+- [x] Etkinlik ekle / düzenle / sil (alttan açılan form modalı)
+- [x] Renkli kategoriler: Tatil (mavi) · Buluşma (pembe) · Özel Gün (mor) · İş/Okul (gri)
+- [x] Hatırlatıcı (`expo-notifications`) — tarih/saatte bildirim
+- [x] Seçili günün etkinlik listesi (kart liste)
+- [x] "Bize Özel Günler" sekmesi — geri sayımlı liste
+- [x] Apple Takvim'e Aktar (`expo-calendar`)
+- [x] Yerel kalıcılık: Zustand + AsyncStorage (`store/calendarStore.ts`)
 
 ## Sıradaki Adımlar
 
-1. **Takvim** — `react-native-calendars`, etkinlik/hatırlatıcı, Apple Takvim aktarımı
-2. **Anılar** — fotoğraf, timeline, harita, gizli notlar
-3. **Feyzi AI** — OpenAI GPT-4o + modlar; `services/feyziAi.ts` içindeki kişilik prompt'unu doldur
-4. **Sürprizler** — kilitli kartlar + açılma koşulları
-5. **Kalıcı veri** — SQLite/AsyncStorage, ardından Supabase
+1. **Anılar** — fotoğraf, timeline, harita, gizli notlar
+2. **Feyzi AI** — OpenAI GPT-4o + modlar; `services/feyziAi.ts` içindeki kişilik prompt'unu doldur
+3. **Sürprizler** — kilitli kartlar + açılma koşulları
+4. **Backend** — Supabase (auth + postgres + storage)
 
 ---
 
