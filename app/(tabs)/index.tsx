@@ -44,7 +44,7 @@ export default function AnaEkran() {
         contentContainerStyle={{ padding: 20, paddingBottom: 32 }}
         showsVerticalScrollIndicator={false}
       >
-        <EkranBasligi baslik="Bugün Biz" altBaslik={selam} temaDugmesi />
+        <EkranBasligi baslik="Bugün Biz" altBaslik={selam} temaDugmesi cikisDugmesi />
 
         {/* Kartlar arası boşluk için her birini View ile sarıyoruz */}
         <View className="mt-4 gap-4">

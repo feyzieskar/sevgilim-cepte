@@ -9,11 +9,20 @@
 
 import { Ionicons } from "@expo/vector-icons";
 import { Tabs } from "expo-router";
+import { useEffect } from "react";
 
+import { useCalendarStore } from "@/store/calendarStore";
 import { usePalet } from "@/store/useThemeStore";
 
 export default function TabsLayout() {
   const palet = usePalet();
+  const fetchEvents = useCalendarStore((s) => s.fetchEvents);
+
+  // Giriş sonrası uygulama açılınca bulut verisini bir kez çek.
+  // Böylece hem ana ekran kartları hem takvim aynı veriyi kullanır.
+  useEffect(() => {
+    fetchEvents();
+  }, [fetchEvents]);
 
   return (
     <Tabs

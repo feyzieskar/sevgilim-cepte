@@ -10,7 +10,15 @@
 
 import { Ionicons } from "@expo/vector-icons";
 import { useMemo, useState } from "react";
-import { Alert, Pressable, ScrollView, Text, View } from "react-native";
+import {
+  ActivityIndicator,
+  Alert,
+  Pressable,
+  RefreshControl,
+  ScrollView,
+  Text,
+  View,
+} from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Calendar, LocaleConfig } from "react-native-calendars";
 
@@ -52,6 +60,9 @@ export default function TakvimEkrani() {
   const addEvent = useCalendarStore((s) => s.addEvent);
   const updateEvent = useCalendarStore((s) => s.updateEvent);
   const deleteEvent = useCalendarStore((s) => s.deleteEvent);
+  const fetchEvents = useCalendarStore((s) => s.fetchEvents);
+  const loading = useCalendarStore((s) => s.loading);
+  const yuklendiMi = useCalendarStore((s) => s.yuklendiMi);
 
   // Yerel durum
   const [gorunum, setGorunum] = useState<Gorunum>("takvim");
@@ -121,7 +132,14 @@ export default function TakvimEkrani() {
       }
       updateEvent(duzenlenen.id, { ...veri, notificationId });
     } else {
-      const yeni = addEvent({ ...veri });
+      const yeni = await addEvent({ ...veri });
+      if (!yeni) {
+        Alert.alert(
+          "Kaydedilemedi",
+          "Etkinlik buluta kaydedilemedi. İnternet bağlantını kontrol edip tekrar dene."
+        );
+        return;
+      }
       if (veri.hasReminder) {
         const notificationId = (await hatirlaticiPlanla(yeni)) ?? undefined;
         if (notificationId) {
@@ -196,7 +214,25 @@ export default function TakvimEkrani() {
       <ScrollView
         contentContainerStyle={{ padding: 20, paddingBottom: 110 }}
         showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl
+            refreshing={loading && yuklendiMi}
+            onRefresh={fetchEvents}
+            tintColor={palet.primary}
+            colors={[palet.primary]}
+          />
+        }
       >
+        {/* İlk yükleme göstergesi */}
+        {!yuklendiMi && loading ? (
+          <View className="items-center py-8">
+            <ActivityIndicator color={palet.primary} />
+            <Text className="mt-2" style={{ color: palet.metinIkincil }}>
+              Takvim yükleniyor 💕
+            </Text>
+          </View>
+        ) : null}
+
         {gorunum === "takvim" ? (
           <>
             {/* Aylık takvim kartı */}
