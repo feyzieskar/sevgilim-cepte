@@ -8,8 +8,14 @@
 import * as ImagePicker from "expo-image-picker";
 import * as Location from "expo-location";
 
-// Galeriden fotoğraf seçer; seçilen URI'yi (yoksa null) döndürür.
-export async function galeridenSec(): Promise<string | null> {
+// Seçilen fotoğraf: önizleme için yerel uri + Storage'a yüklemek için base64
+export interface SecilenFoto {
+  uri: string;
+  base64?: string;
+}
+
+// Galeriden fotoğraf seçer; seçileni (yoksa null) döndürür.
+export async function galeridenSec(): Promise<SecilenFoto | null> {
   const izin = await ImagePicker.requestMediaLibraryPermissionsAsync();
   if (!izin.granted) return null;
 
@@ -17,24 +23,28 @@ export async function galeridenSec(): Promise<string | null> {
     mediaTypes: ["images"],
     allowsEditing: true,
     quality: 0.8,
+    base64: true, // Supabase Storage'a yüklemek için
   });
 
   if (sonuc.canceled || sonuc.assets.length === 0) return null;
-  return sonuc.assets[0].uri;
+  const a = sonuc.assets[0];
+  return { uri: a.uri, base64: a.base64 ?? undefined };
 }
 
-// Kameradan fotoğraf çeker; çekilen URI'yi (yoksa null) döndürür.
-export async function kameradanCek(): Promise<string | null> {
+// Kameradan fotoğraf çeker; çekileni (yoksa null) döndürür.
+export async function kameradanCek(): Promise<SecilenFoto | null> {
   const izin = await ImagePicker.requestCameraPermissionsAsync();
   if (!izin.granted) return null;
 
   const sonuc = await ImagePicker.launchCameraAsync({
     allowsEditing: true,
     quality: 0.8,
+    base64: true,
   });
 
   if (sonuc.canceled || sonuc.assets.length === 0) return null;
-  return sonuc.assets[0].uri;
+  const a = sonuc.assets[0];
+  return { uri: a.uri, base64: a.base64 ?? undefined };
 }
 
 export interface KonumBilgisi {

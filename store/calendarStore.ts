@@ -12,6 +12,7 @@
 // ====================================================================
 
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { RealtimeChannel } from "@supabase/supabase-js";
 import { create } from "zustand";
 
 import { EventCategory } from "@/constants/kategoriler";
@@ -67,6 +68,8 @@ interface CalendarState {
   setNotificationId: (id: string, notificationId?: string) => Promise<void>;
   // Belirli bir güne ait etkinlikleri döndürür (saate göre sıralı)
   getEventsByDate: (dateISO: string) => CalendarEvent[];
+  // Realtime aboneliği kurar; temizleme fonksiyonu döndürür
+  subscribeRealtime: () => () => void;
 }
 
 // ---- Cihaz-yerel hatırlatıcı eşlemesi (eventId -> notificationId) ----
@@ -123,6 +126,9 @@ function degisiklikleriRowaCevir(
   if (d.hasReminder !== undefined) row.has_reminder = d.hasReminder;
   return row;
 }
+
+// Tek bir Realtime kanalı (çift abonelik kurmamak için modül seviyesinde)
+let etkinlikKanali: RealtimeChannel | null = null;
 
 // Etkinlikleri saate göre sıralar (saatsizler en sona)
 function saateGoreSirala(liste: CalendarEvent[]): CalendarEvent[] {
@@ -235,5 +241,28 @@ export const useCalendarStore = create<CalendarState>((set, get) => ({
 
   getEventsByDate: (dateISO) => {
     return saateGoreSirala(get().events.filter((e) => e.date === dateISO));
+  },
+
+  subscribeRealtime: () => {
+    if (etkinlikKanali) return () => {};
+
+    etkinlikKanali = supabase
+      .channel("events-degisiklikleri")
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "events" },
+        () => {
+          // Her değişiklikte listeyi tazele (basit ve güvenli)
+          get().fetchEvents();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      if (etkinlikKanali) {
+        supabase.removeChannel(etkinlikKanali);
+        etkinlikKanali = null;
+      }
+    };
   },
 }));

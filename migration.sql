@@ -350,11 +350,11 @@ create policy "media_delete" on storage.objects
 -- Aşağıdaki kullanıcıların kayıtları geldikten sonra e-postalarını
 -- yazıp bu bloğu bir kez çalıştır; iki profili karşılıklı eşler.
 --
--- do $$
--- declare ben uuid; sevgilim uuid;
--- begin
---   select id into ben      from auth.users where email = 'BENIM@mail.com';
---   select id into sevgilim from auth.users where email = 'SEVGILIM@mail.com';
---   update public.profiles set partner_id = sevgilim where id = ben;
---   update public.profiles set partner_id = ben      where id = sevgilim;
--- end $$;
+ do $$
+ declare ben uuid; sevgilim uuid;
+ begin
+   select id into ben      from auth.users where email = 'feyziekar@mail.com';
+   select id into sevgilim from auth.users where email = 'basakispekter@mail.com';
+   update public.profiles set partner_id = sevgilim where id = ben;
+   update public.profiles set partner_id = ben      where id = sevgilim;
+ end $$;

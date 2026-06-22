@@ -26,7 +26,7 @@ import { Calendar, LocaleConfig } from "react-native-calendars";
 import { AYLAR, GUNLER, bugunISO, tarihUzun } from "@/constants/tarih";
 import { RADIUS } from "@/constants/theme";
 import { galeridenSec, kameradanCek, mevcutKonum } from "@/services/media";
-import type { Memory } from "@/store/memoryStore";
+import type { Memory, MemoryGirdi } from "@/store/memoryStore";
 import { usePalet, useThemeStore } from "@/store/useThemeStore";
 
 // Takvimi Türkçeleştir (modül yüklenince bir kez)
@@ -39,14 +39,16 @@ LocaleConfig.locales.tr = {
 };
 LocaleConfig.defaultLocale = "tr";
 
-// Formdan dışarı verilen veri (id yönetimi ekranda)
-export type AniFormVerisi = Omit<Memory, "id">;
+// Formdan dışarı verilen veri (id yönetimi ekranda).
+// Yeni fotoğraf seçildiyse photoBase64 da taşınır (Storage'a yüklenir).
+export type AniFormVerisi = MemoryGirdi;
 
 interface AniFormModalProps {
   visible: boolean;
   onClose: () => void;
   duzenlenen?: Memory | null;
-  onKaydet: (veri: AniFormVerisi) => void;
+  // Kaydetme async olabilir (fotoğraf yükleme); modal sırasında spinner gösterilir
+  onKaydet: (veri: AniFormVerisi) => void | Promise<void>;
 }
 
 export function AniFormModal({
@@ -59,6 +61,8 @@ export function AniFormModal({
   const mod = useThemeStore((s) => s.mod);
 
   const [photoUri, setPhotoUri] = useState<string | null>(null);
+  // Yeni seçilen fotoğrafın base64'ü (yalnızca yeni seçimde dolar)
+  const [photoBase64, setPhotoBase64] = useState<string | undefined>();
   const [date, setDate] = useState(bugunISO());
   const [note, setNote] = useState("");
   const [locationName, setLocationName] = useState("");
@@ -66,6 +70,7 @@ export function AniFormModal({
   const [longitude, setLongitude] = useState<number | undefined>();
   const [takvimAcik, setTakvimAcik] = useState(false);
   const [konumYukleniyor, setKonumYukleniyor] = useState(false);
+  const [kaydediliyor, setKaydediliyor] = useState(false);
   const [hata, setHata] = useState<string | null>(null);
 
   // Modal her açıldığında formu uygun değerlerle doldur
@@ -86,20 +91,28 @@ export function AniFormModal({
       setLatitude(undefined);
       setLongitude(undefined);
     }
+    setPhotoBase64(undefined);
     setTakvimAcik(false);
+    setKaydediliyor(false);
     setHata(null);
   }, [visible, duzenlenen]);
 
   // Fotoğraf seç (galeri)
   const galeri = async () => {
-    const uri = await galeridenSec();
-    if (uri) setPhotoUri(uri);
+    const foto = await galeridenSec();
+    if (foto) {
+      setPhotoUri(foto.uri);
+      setPhotoBase64(foto.base64);
+    }
   };
 
   // Fotoğraf çek (kamera)
   const kamera = async () => {
-    const uri = await kameradanCek();
-    if (uri) setPhotoUri(uri);
+    const foto = await kameradanCek();
+    if (foto) {
+      setPhotoUri(foto.uri);
+      setPhotoBase64(foto.base64);
+    }
   };
 
   // Mevcut konumu al
@@ -118,20 +131,33 @@ export function AniFormModal({
     }
   };
 
-  const kaydet = () => {
+  const kaydet = async () => {
     if (!photoUri) {
       setHata("Lütfen bir fotoğraf seç 📸");
       return;
     }
-    onKaydet({
-      photoUri,
-      date,
-      note: note.trim(),
-      isFavorite: duzenlenen?.isFavorite ?? false,
-      locationName: locationName.trim() === "" ? undefined : locationName.trim(),
-      latitude,
-      longitude,
-    });
+    // Yeni anıda mutlaka base64 (yüklenecek fotoğraf) olmalı
+    if (!duzenlenen && !photoBase64) {
+      setHata("Fotoğraf okunamadı, lütfen tekrar seç 📸");
+      return;
+    }
+    setHata(null);
+    setKaydediliyor(true);
+    try {
+      await onKaydet({
+        photoUri,
+        photoBase64,
+        date,
+        note: note.trim(),
+        isFavorite: duzenlenen?.isFavorite ?? false,
+        locationName:
+          locationName.trim() === "" ? undefined : locationName.trim(),
+        latitude,
+        longitude,
+      });
+    } finally {
+      setKaydediliyor(false);
+    }
   };
 
   const inputStyle = {
@@ -321,12 +347,22 @@ export function AniFormModal({
               {/* Kaydet butonu */}
               <Pressable
                 onPress={kaydet}
+                disabled={kaydediliyor}
                 className="mb-8 mt-5 items-center rounded-2xl py-4"
-                style={{ backgroundColor: palet.primary }}
+                style={{ backgroundColor: palet.primary, opacity: kaydediliyor ? 0.7 : 1 }}
               >
-                <Text className="text-lg font-bold text-white">
-                  {duzenlenen ? "Güncelle" : "Kaydet"}
-                </Text>
+                {kaydediliyor ? (
+                  <View className="flex-row items-center">
+                    <ActivityIndicator size="small" color="#FFFFFF" />
+                    <Text className="ml-2 text-lg font-bold text-white">
+                      Yükleniyor…
+                    </Text>
+                  </View>
+                ) : (
+                  <Text className="text-lg font-bold text-white">
+                    {duzenlenen ? "Güncelle" : "Kaydet"}
+                  </Text>
+                )}
               </Pressable>
             </ScrollView>
           </View>

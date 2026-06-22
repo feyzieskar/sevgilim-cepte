@@ -12,7 +12,15 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { useMemo, useState } from "react";
-import { Pressable, ScrollView, Text, View } from "react-native";
+import {
+  ActivityIndicator,
+  Alert,
+  Pressable,
+  RefreshControl,
+  ScrollView,
+  Text,
+  View,
+} from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { AniFormModal, AniFormVerisi } from "@/components/memory/AniFormModal";
@@ -33,6 +41,9 @@ export default function AnilarEkrani() {
   const memories = useMemoryStore((s) => s.memories);
   const addMemory = useMemoryStore((s) => s.addMemory);
   const toggleFavorite = useMemoryStore((s) => s.toggleFavorite);
+  const fetchMemories = useMemoryStore((s) => s.fetchMemories);
+  const loading = useMemoryStore((s) => s.loading);
+  const yuklendiMi = useMemoryStore((s) => s.yuklendiMi);
 
   const [filtre, setFiltre] = useState<Filtre>("tumu");
   const [modalAcik, setModalAcik] = useState(false);
@@ -57,8 +68,15 @@ export default function AnilarEkrani() {
   const detayaGit = (m: Memory) =>
     router.push({ pathname: "/ani/[id]", params: { id: m.id } });
 
-  const kaydet = (veri: AniFormVerisi) => {
-    addMemory(veri);
+  const kaydet = async (veri: AniFormVerisi) => {
+    const yeni = await addMemory(veri);
+    if (!yeni) {
+      Alert.alert(
+        "Kaydedilemedi",
+        "Anı buluta kaydedilemedi. Fotoğraf yüklenirken bir sorun oluştu, tekrar dene."
+      );
+      return;
+    }
     setModalAcik(false);
   };
 
@@ -110,8 +128,23 @@ export default function AnilarEkrani() {
       <ScrollView
         contentContainerStyle={{ padding: 20, paddingBottom: 110 }}
         showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl
+            refreshing={loading && yuklendiMi}
+            onRefresh={fetchMemories}
+            tintColor={palet.primary}
+            colors={[palet.primary]}
+          />
+        }
       >
-        {bosDurum ? (
+        {!yuklendiMi && loading ? (
+          <View className="items-center py-10">
+            <ActivityIndicator color={palet.primary} />
+            <Text className="mt-2" style={{ color: palet.metinIkincil }}>
+              Anılar yükleniyor 💕
+            </Text>
+          </View>
+        ) : bosDurum ? (
           // ---- Boş durum ----
           <View
             className="mt-10 items-center px-8 py-12"

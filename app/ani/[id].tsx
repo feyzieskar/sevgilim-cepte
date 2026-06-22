@@ -59,15 +59,16 @@ export default function AniDetayEkrani() {
         text: "Sil",
         style: "destructive",
         onPress: () => {
-          deleteMemory(memory.id);
+          // Önce ekrandan çık, silme buluta arka planda yazılsın
           router.back();
+          deleteMemory(memory.id);
         },
       },
     ]);
   };
 
-  const guncelle = (veri: AniFormVerisi) => {
-    updateMemory(memory.id, veri);
+  const guncelle = async (veri: AniFormVerisi) => {
+    await updateMemory(memory.id, veri);
     setDuzenleAcik(false);
   };
 

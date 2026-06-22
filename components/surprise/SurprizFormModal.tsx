@@ -10,6 +10,7 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useEffect, useState } from "react";
 import {
+  ActivityIndicator,
   Image,
   KeyboardAvoidingView,
   Modal,
@@ -26,7 +27,7 @@ import { UNLOCK_LISTESI, UnlockType } from "@/constants/surpriz";
 import { AYLAR, GUNLER, bugunISO, tarihUzun } from "@/constants/tarih";
 import { RADIUS } from "@/constants/theme";
 import { galeridenSec } from "@/services/media";
-import type { Surprise } from "@/store/surpriseStore";
+import type { SurprizGirdi } from "@/store/surpriseStore";
 import { usePalet, useThemeStore } from "@/store/useThemeStore";
 
 // Takvimi Türkçeleştir (modül yüklenince bir kez)
@@ -39,16 +40,15 @@ LocaleConfig.locales.tr = {
 };
 LocaleConfig.defaultLocale = "tr";
 
-// Formdan dışarı verilen veri (id/isOpened/openedAt yönetimi store'da)
-export type SurprizFormVerisi = Omit<
-  Surprise,
-  "id" | "isOpened" | "openedAt"
->;
+// Formdan dışarı verilen veri (id/isOpened/openedAt yönetimi store'da).
+// Yeni fotoğraf seçildiyse photoBase64 da taşınır (Storage'a yüklenir).
+export type SurprizFormVerisi = SurprizGirdi;
 
 interface SurprizFormModalProps {
   visible: boolean;
   onClose: () => void;
-  onKaydet: (veri: SurprizFormVerisi) => void;
+  // Kaydetme async olabilir (fotoğraf yükleme); modal sırasında spinner gösterilir
+  onKaydet: (veri: SurprizFormVerisi) => void | Promise<void>;
 }
 
 export function SurprizFormModal({
@@ -62,9 +62,11 @@ export function SurprizFormModal({
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
   const [photoUri, setPhotoUri] = useState<string | null>(null);
+  const [photoBase64, setPhotoBase64] = useState<string | undefined>();
   const [unlockType, setUnlockType] = useState<UnlockType>("date");
   const [unlockDate, setUnlockDate] = useState(bugunISO());
   const [takvimAcik, setTakvimAcik] = useState(false);
+  const [kaydediliyor, setKaydediliyor] = useState(false);
   const [hata, setHata] = useState<string | null>(null);
 
   // Modal her açıldığında formu sıfırla
@@ -73,9 +75,11 @@ export function SurprizFormModal({
     setTitle("");
     setContent("");
     setPhotoUri(null);
+    setPhotoBase64(undefined);
     setUnlockType("date");
     setUnlockDate(bugunISO());
     setTakvimAcik(false);
+    setKaydediliyor(false);
     setHata(null);
   }, [visible]);
 
@@ -84,11 +88,14 @@ export function SurprizFormModal({
     UNLOCK_LISTESI.find((t) => t.tip === unlockType)?.tarihGerekir ?? false;
 
   const fotografSec = async () => {
-    const uri = await galeridenSec();
-    if (uri) setPhotoUri(uri);
+    const foto = await galeridenSec();
+    if (foto) {
+      setPhotoUri(foto.uri);
+      setPhotoBase64(foto.base64);
+    }
   };
 
-  const kaydet = () => {
+  const kaydet = async () => {
     if (title.trim() === "") {
       setHata("Lütfen bir başlık gir 🎁");
       return;
@@ -97,14 +104,20 @@ export function SurprizFormModal({
       setHata("Lütfen sürpriz mesajını yaz 💌");
       return;
     }
-
-    onKaydet({
-      title: title.trim(),
-      content: content.trim(),
-      photoUri: photoUri ?? undefined,
-      unlockType,
-      unlockDate: tarihGerekir ? unlockDate : undefined,
-    });
+    setHata(null);
+    setKaydediliyor(true);
+    try {
+      await onKaydet({
+        title: title.trim(),
+        content: content.trim(),
+        photoUri: photoUri ?? undefined,
+        photoBase64,
+        unlockType,
+        unlockDate: tarihGerekir ? unlockDate : undefined,
+      });
+    } finally {
+      setKaydediliyor(false);
+    }
   };
 
   const inputStyle = {
@@ -183,7 +196,10 @@ export function SurprizFormModal({
                     resizeMode="cover"
                   />
                   <Pressable
-                    onPress={() => setPhotoUri(null)}
+                    onPress={() => {
+                      setPhotoUri(null);
+                      setPhotoBase64(undefined);
+                    }}
                     className="absolute right-2 top-2 h-9 w-9 items-center justify-center rounded-full"
                     style={{ backgroundColor: "rgba(0,0,0,0.5)" }}
                   >
@@ -310,10 +326,20 @@ export function SurprizFormModal({
               {/* Kaydet butonu */}
               <Pressable
                 onPress={kaydet}
+                disabled={kaydediliyor}
                 className="mb-8 mt-5 items-center rounded-2xl py-4"
-                style={{ backgroundColor: palet.primary }}
+                style={{ backgroundColor: palet.primary, opacity: kaydediliyor ? 0.7 : 1 }}
               >
-                <Text className="text-lg font-bold text-white">Sürprizi Sakla</Text>
+                {kaydediliyor ? (
+                  <View className="flex-row items-center">
+                    <ActivityIndicator size="small" color="#FFFFFF" />
+                    <Text className="ml-2 text-lg font-bold text-white">
+                      Kaydediliyor…
+                    </Text>
+                  </View>
+                ) : (
+                  <Text className="text-lg font-bold text-white">Sürprizi Sakla</Text>
+                )}
               </Pressable>
             </ScrollView>
           </View>

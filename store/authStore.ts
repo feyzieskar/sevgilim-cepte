@@ -69,6 +69,9 @@ export const useAuthStore = create<AuthState>((set) => ({
   initialize: async () => {
     // 1) Kayıtlı (AsyncStorage'daki) session'ı yükle
     const { data } = await supabase.auth.getSession();
+    // Realtime'ın RLS'i doğru uygulaması için access token'ı ilet
+    // (postgres_changes'in partner satırlarını gönderebilmesi için gerekli)
+    supabase.realtime.setAuth(data.session?.access_token ?? null);
     set({
       session: data.session,
       user: data.session?.user ?? null,
@@ -78,6 +81,7 @@ export const useAuthStore = create<AuthState>((set) => ({
     // 2) Bundan sonraki tüm oturum değişikliklerini dinle
     //    (giriş, çıkış, token yenileme...) ve store'u güncelle
     supabase.auth.onAuthStateChange((_event, session) => {
+      supabase.realtime.setAuth(session?.access_token ?? null);
       set({ session, user: session?.user ?? null });
     });
   },

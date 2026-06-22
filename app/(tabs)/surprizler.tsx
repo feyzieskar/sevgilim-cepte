@@ -4,13 +4,21 @@
 // - Hızlı açma butonları: "Kötü hissediyorum" / "Seni özledim"
 // - Sürpriz listesi: kilitli / açılabilir / açılmış kartlar
 // - (+) ile admin sürpriz ekleme (form modalı)
-// Veriler Zustand + AsyncStorage'da kalıcıdır (backend yok).
-// before_trip koşulu için calendarStore okunur.
+// Veriler Supabase'de (surprises tablosu) saklanır ve Realtime ile
+// partnerle anında senkronlanır. before_trip koşulu için calendarStore okunur.
 // ====================================================================
 
 import { Ionicons } from "@expo/vector-icons";
 import { useMemo, useState } from "react";
-import { Alert, Pressable, ScrollView, Text, View } from "react-native";
+import {
+  ActivityIndicator,
+  Alert,
+  Pressable,
+  RefreshControl,
+  ScrollView,
+  Text,
+  View,
+} from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { SurprizFormModal, SurprizFormVerisi } from "@/components/surprise/SurprizFormModal";
@@ -29,6 +37,9 @@ export default function SurprizlerEkrani() {
   const deleteSurprise = useSurpriseStore((s) => s.deleteSurprise);
   const acilabilirMi = useSurpriseStore((s) => s.acilabilirMi);
   const openByType = useSurpriseStore((s) => s.openByType);
+  const fetchSurprises = useSurpriseStore((s) => s.fetchSurprises);
+  const loading = useSurpriseStore((s) => s.loading);
+  const yuklendiMi = useSurpriseStore((s) => s.yuklendiMi);
 
   const [modalAcik, setModalAcik] = useState(false);
 
@@ -42,14 +53,21 @@ export default function SurprizlerEkrani() {
     return [...surprises].sort((a, b) => rutbe(a) - rutbe(b));
   }, [surprises, acilabilirMi]);
 
-  const kaydet = (veri: SurprizFormVerisi) => {
-    addSurprise(veri);
+  const kaydet = async (veri: SurprizFormVerisi) => {
+    const yeni = await addSurprise(veri);
+    if (!yeni) {
+      Alert.alert(
+        "Kaydedilemedi",
+        "Sürpriz buluta kaydedilemedi. İnternet bağlantını kontrol edip tekrar dene."
+      );
+      return;
+    }
     setModalAcik(false);
   };
 
   // Hızlı açma: sad/miss tipinde açılmamış bir sürprizi açar
-  const hizliAc = (tip: "sad" | "miss") => {
-    const acilan = openByType(tip);
+  const hizliAc = async (tip: "sad" | "miss") => {
+    const acilan = await openByType(tip);
     if (!acilan) {
       Alert.alert(
         tip === "sad" ? "Şu an için sürpriz yok 💙" : "Şu an için sürpriz yok 🥺",
@@ -71,7 +89,24 @@ export default function SurprizlerEkrani() {
       <ScrollView
         contentContainerStyle={{ padding: 20, paddingBottom: 110 }}
         showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl
+            refreshing={loading && yuklendiMi}
+            onRefresh={fetchSurprises}
+            tintColor={palet.primary}
+            colors={[palet.primary]}
+          />
+        }
       >
+        {!yuklendiMi && loading ? (
+          <View className="items-center py-6">
+            <ActivityIndicator color={palet.primary} />
+            <Text className="mt-2" style={{ color: palet.metinIkincil }}>
+              Sürprizler yükleniyor 💕
+            </Text>
+          </View>
+        ) : null}
+
         {/* Hızlı açma butonları */}
         <View className="mb-5 flex-row gap-3">
           <Pressable

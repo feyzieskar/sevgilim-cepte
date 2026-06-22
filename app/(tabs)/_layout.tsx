@@ -12,17 +12,35 @@ import { Tabs } from "expo-router";
 import { useEffect } from "react";
 
 import { useCalendarStore } from "@/store/calendarStore";
+import { useMemoryStore } from "@/store/memoryStore";
+import { useSurpriseStore } from "@/store/surpriseStore";
 import { usePalet } from "@/store/useThemeStore";
 
 export default function TabsLayout() {
   const palet = usePalet();
   const fetchEvents = useCalendarStore((s) => s.fetchEvents);
+  const fetchMemories = useMemoryStore((s) => s.fetchMemories);
+  const fetchSurprises = useSurpriseStore((s) => s.fetchSurprises);
+  const subscribeEvents = useCalendarStore((s) => s.subscribeRealtime);
+  const subscribeSurprises = useSurpriseStore((s) => s.subscribeRealtime);
 
   // Giriş sonrası uygulama açılınca bulut verisini bir kez çek.
-  // Böylece hem ana ekran kartları hem takvim aynı veriyi kullanır.
+  // Böylece hem ana ekran kartları hem ilgili sekmeler aynı veriyi kullanır.
   useEffect(() => {
     fetchEvents();
-  }, [fetchEvents]);
+    fetchMemories();
+    fetchSurprises();
+  }, [fetchEvents, fetchMemories, fetchSurprises]);
+
+  // Realtime: partner bir etkinlik/sürpriz eklediğinde ekran anında güncellenir.
+  useEffect(() => {
+    const unsubEvents = subscribeEvents();
+    const unsubSurprises = subscribeSurprises();
+    return () => {
+      unsubEvents();
+      unsubSurprises();
+    };
+  }, [subscribeEvents, subscribeSurprises]);
 
   return (
     <Tabs

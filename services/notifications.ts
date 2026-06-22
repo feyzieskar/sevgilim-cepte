@@ -88,6 +88,21 @@ export async function hatirlaticiPlanla(
   return id;
 }
 
+// Anında (şimdi) bir bildirim gösterir. Realtime ile gelen yeni sürpriz
+// gibi durumlarda kullanılır. İzin yoksa sessizce geçer.
+export async function bildirimGonderHemen(
+  title: string,
+  body: string
+): Promise<void> {
+  const izin = await bildirimIzniIste();
+  if (!izin) return;
+  await kanaliHazirla();
+  await Notifications.scheduleNotificationAsync({
+    content: { title, body, sound: true },
+    trigger: null, // hemen tetikle
+  });
+}
+
 // Planlanmış bir hatırlatıcıyı iptal eder.
 export async function hatirlaticiIptal(notificationId?: string) {
   if (!notificationId) return;

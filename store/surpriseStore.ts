@@ -1,52 +1,70 @@
 // ====================================================================
-// SÜRPRİZ STORE (Zustand + AsyncStorage persist)
+// SÜRPRİZ STORE (Zustand + Supabase + Storage + Realtime)
 // ====================================================================
-// Sürpriz kutuları yerel olarak telefonda saklanır (backend henüz yok).
-// Faz 2'de Supabase'e taşınacak: admin (ben) ekleyince sevgilinin
-// telefonunda görünecek.
+// Sürprizler artık bulutta (Supabase "surprises" tablosu) saklanır.
+// Ben bir sürpriz eklediğimde sevgilimin ekranında Realtime ile ANINDA
+// görünür (ve bildirim düşer). Fotoğraflar "surprise-media" bucket'ına
+// yüklenir. before_trip koşulu için calendarStore okunur.
 // ====================================================================
 
-import AsyncStorage from "@react-native-async-storage/async-storage";
+import { RealtimeChannel } from "@supabase/supabase-js";
 import { create } from "zustand";
-import { createJSONStorage, persist } from "zustand/middleware";
 
 import { TATIL_ESIK_GUN, UnlockType } from "@/constants/surpriz";
 import { bugunISO, isoToDate } from "@/constants/tarih";
+import { supabase } from "@/lib/supabase";
+import { bildirimGonderHemen } from "@/services/notifications";
+import { fotoSil, fotoYukle } from "@/services/storageService";
+import { useAuthStore } from "@/store/authStore";
 import { useCalendarStore } from "@/store/calendarStore";
 
-// --- Veri modeli (spec ile birebir) ---
+// --- Veri modeli (uygulama tarafı) ---
 export interface Surprise {
   id: string;
-  title: string; // ör. "Doğum günün için 🎂"
-  content: string; // mesaj metni
-  photoUri?: string; // opsiyonel fotoğraf
+  title: string;
+  content: string;
+  photoUri?: string; // Supabase Storage public URL
   unlockType: UnlockType;
-  unlockDate?: string; // unlockType 'date' veya 'before_trip' ise
+  unlockDate?: string;
   isOpened: boolean;
   openedAt?: string;
 }
 
-interface SurpriseState {
-  surprises: Surprise[];
-  hidratlandiMi: boolean;
-  setHidratlandi: (deger: boolean) => void;
+// Form/store girdisi: yeni fotoğraf seçildiyse base64 da taşınır
+export type SurprizGirdi = Omit<Surprise, "id" | "isOpened" | "openedAt"> & {
+  photoBase64?: string;
+};
 
-  // Yeni sürpriz ekler ve oluşturulan kaydı döndürür
-  addSurprise: (girdi: Omit<Surprise, "id" | "isOpened" | "openedAt">) => Surprise;
-  // Bir sürprizi açar (içeriği görünür hale gelir)
-  openSurprise: (id: string) => void;
-  // Sürprizi siler
-  deleteSurprise: (id: string) => void;
-  // Şu an açılabilir durumdaki (koşulu sağlanmış, henüz açılmamış) sürprizler
-  getUnlockableSurprises: () => Surprise[];
-  // sad/miss için: o tipte açılmamış ilk sürprizi açar, açtığını döndürür
-  openByType: (tip: Extract<UnlockType, "sad" | "miss">) => Surprise | null;
-  // Tek bir sürprizin şu anda açılabilir olup olmadığını söyler
-  acilabilirMi: (s: Surprise) => boolean;
+// --- Supabase "surprises" satırı (snake_case) ---
+interface SurpriseRow {
+  id: string;
+  title: string;
+  content: string;
+  photo_url: string | null;
+  unlock_type: UnlockType;
+  unlock_date: string | null;
+  is_opened: boolean;
+  opened_at: string | null;
+  created_by: string;
+  created_at: string;
 }
 
-function yeniId(): string {
-  return `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
+interface SurpriseState {
+  surprises: Surprise[];
+  yuklendiMi: boolean;
+  loading: boolean;
+
+  fetchSurprises: () => Promise<void>;
+  addSurprise: (girdi: SurprizGirdi) => Promise<Surprise | null>;
+  openSurprise: (id: string) => Promise<void>;
+  deleteSurprise: (id: string) => Promise<void>;
+  getUnlockableSurprises: () => Surprise[];
+  openByType: (
+    tip: Extract<UnlockType, "sad" | "miss">
+  ) => Promise<Surprise | null>;
+  acilabilirMi: (s: Surprise) => boolean;
+  // Realtime aboneliği kurar; temizleme fonksiyonu döndürür
+  subscribeRealtime: () => () => void;
 }
 
 // İki ISO tarih arasındaki tam gün farkı (hedef - bugün).
@@ -62,18 +80,15 @@ function kalanGun(hedefISO: string, bugun: Date = new Date()): number {
   );
 }
 
-// Takvimden bugünden sonraki (veya bugünkü) en yakın 'tatil' etkinliğine
-// kalan gün sayısını bulur. Tatil yoksa null döner.
+// Takvimden bugünden sonraki en yakın 'tatil' etkinliğine kalan gün.
 function enYakinTatileKalanGun(): number | null {
   const events = useCalendarStore.getState().events;
   const buISO = bugunISO();
-
   const tatiller = events
     .filter((e) => e.category === "tatil" && e.date >= buISO)
     .map((e) => kalanGun(e.date))
     .filter((k) => k >= 0)
     .sort((a, b) => a - b);
-
   return tatiller.length > 0 ? tatiller[0] : null;
 }
 
@@ -81,77 +96,172 @@ function enYakinTatileKalanGun(): number | null {
 function kosulSaglandiMi(s: Surprise): boolean {
   switch (s.unlockType) {
     case "date":
-      // Bugün >= unlockDate ise açılabilir
       return s.unlockDate ? bugunISO() >= s.unlockDate : false;
-
     case "before_trip": {
-      // En yakın tatile <= eşik gün kala açılabilir
       const kalan = enYakinTatileKalanGun();
       if (kalan == null) return false;
       return kalan <= TATIL_ESIK_GUN;
     }
-
     case "sad":
     case "miss":
-      // Bu tipler her zaman elle (buton ile) açılabilir
       return true;
-
     default:
       return false;
   }
 }
 
-export const useSurpriseStore = create<SurpriseState>()(
-  persist(
-    (set, get) => ({
-      surprises: [],
-      hidratlandiMi: false,
-      setHidratlandi: (deger) => set({ hidratlandiMi: deger }),
+function satiriSurprizeCevir(r: SurpriseRow): Surprise {
+  return {
+    id: r.id,
+    title: r.title,
+    content: r.content,
+    photoUri: r.photo_url ?? undefined,
+    unlockType: r.unlock_type,
+    unlockDate: r.unlock_date ?? undefined,
+    isOpened: r.is_opened,
+    openedAt: r.opened_at ?? undefined,
+  };
+}
 
-      addSurprise: (girdi) => {
-        const yeni: Surprise = { ...girdi, id: yeniId(), isOpened: false };
-        set((s) => ({ surprises: [...s.surprises, yeni] }));
-        return yeni;
-      },
+// Tek bir Realtime kanalı (çift abonelik kurmamak için modül seviyesinde)
+let surprizKanali: RealtimeChannel | null = null;
 
-      openSurprise: (id) => {
-        set((s) => ({
-          surprises: s.surprises.map((x) =>
-            x.id === id
-              ? { ...x, isOpened: true, openedAt: new Date().toISOString() }
-              : x
-          ),
-        }));
-      },
+export const useSurpriseStore = create<SurpriseState>((set, get) => ({
+  surprises: [],
+  yuklendiMi: false,
+  loading: false,
 
-      deleteSurprise: (id) => {
-        set((s) => ({ surprises: s.surprises.filter((x) => x.id !== id) }));
-      },
+  fetchSurprises: async () => {
+    set({ loading: true });
+    const { data, error } = await supabase
+      .from("surprises")
+      .select("*")
+      .order("created_at", { ascending: false });
 
-      acilabilirMi: (s) => !s.isOpened && kosulSaglandiMi(s),
-
-      getUnlockableSurprises: () => {
-        return get().surprises.filter((s) => !s.isOpened && kosulSaglandiMi(s));
-      },
-
-      openByType: (tip) => {
-        // O tipte, henüz açılmamış ilk sürprizi bul ve aç
-        const hedef = get().surprises.find(
-          (s) => s.unlockType === tip && !s.isOpened
-        );
-        if (!hedef) return null;
-        get().openSurprise(hedef.id);
-        // Güncel (açılmış) hali döndür
-        return { ...hedef, isOpened: true, openedAt: new Date().toISOString() };
-      },
-    }),
-    {
-      name: "sevgilim-cepte-surprizler",
-      storage: createJSONStorage(() => AsyncStorage),
-      partialize: (s): { surprises: Surprise[] } => ({ surprises: s.surprises }),
-      onRehydrateStorage: () => (state) => {
-        state?.setHidratlandi(true);
-      },
+    if (error) {
+      console.warn("[surpriseStore] fetchSurprises hatası:", error.message);
+      set({ loading: false, yuklendiMi: true });
+      return;
     }
-  )
-);
+
+    set({
+      surprises: (data as SurpriseRow[]).map(satiriSurprizeCevir),
+      loading: false,
+      yuklendiMi: true,
+    });
+  },
+
+  addSurprise: async (girdi) => {
+    // Fotoğraf seçildiyse önce Storage'a yükle
+    let photoUrl = girdi.photoUri;
+    if (girdi.photoBase64) {
+      const url = await fotoYukle("surprise-media", girdi.photoBase64);
+      if (url) photoUrl = url;
+    }
+
+    const { data, error } = await supabase
+      .from("surprises")
+      .insert({
+        title: girdi.title,
+        content: girdi.content,
+        photo_url: photoUrl ?? null,
+        unlock_type: girdi.unlockType,
+        unlock_date: girdi.unlockDate ?? null,
+        is_opened: false,
+      })
+      .select()
+      .single();
+
+    if (error || !data) {
+      console.warn("[surpriseStore] addSurprise hatası:", error?.message);
+      return null;
+    }
+
+    const yeni = satiriSurprizeCevir(data as SurpriseRow);
+    // Realtime kendi eklediğimizi de geri gönderebilir; tekrarı önlemek için
+    // id kontrolüyle ekliyoruz.
+    set((s) =>
+      s.surprises.some((x) => x.id === yeni.id)
+        ? s
+        : { surprises: [yeni, ...s.surprises] }
+    );
+    return yeni;
+  },
+
+  openSurprise: async (id) => {
+    const acilmaZamani = new Date().toISOString();
+    // İyimser güncelle
+    set((s) => ({
+      surprises: s.surprises.map((x) =>
+        x.id === id ? { ...x, isOpened: true, openedAt: acilmaZamani } : x
+      ),
+    }));
+
+    const { error } = await supabase
+      .from("surprises")
+      .update({ is_opened: true, opened_at: acilmaZamani })
+      .eq("id", id);
+    if (error) {
+      console.warn("[surpriseStore] openSurprise hatası:", error.message);
+    }
+  },
+
+  deleteSurprise: async (id) => {
+    const mevcut = get().surprises.find((x) => x.id === id);
+    const { error } = await supabase.from("surprises").delete().eq("id", id);
+    if (error) {
+      console.warn("[surpriseStore] deleteSurprise hatası:", error.message);
+    }
+    if (mevcut?.photoUri) await fotoSil("surprise-media", mevcut.photoUri);
+    set((s) => ({ surprises: s.surprises.filter((x) => x.id !== id) }));
+  },
+
+  acilabilirMi: (s) => !s.isOpened && kosulSaglandiMi(s),
+
+  getUnlockableSurprises: () => {
+    return get().surprises.filter((s) => !s.isOpened && kosulSaglandiMi(s));
+  },
+
+  openByType: async (tip) => {
+    const hedef = get().surprises.find(
+      (s) => s.unlockType === tip && !s.isOpened
+    );
+    if (!hedef) return null;
+    await get().openSurprise(hedef.id);
+    return { ...hedef, isOpened: true, openedAt: new Date().toISOString() };
+  },
+
+  subscribeRealtime: () => {
+    if (surprizKanali) return () => {};
+
+    surprizKanali = supabase
+      .channel("surprises-degisiklikleri")
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "surprises" },
+        (payload) => {
+          // Partner yeni sürpriz eklediyse bildirim gönder
+          if (payload.eventType === "INSERT") {
+            const yeni = payload.new as SurpriseRow;
+            const benimId = useAuthStore.getState().user?.id;
+            if (yeni.created_by && yeni.created_by !== benimId) {
+              bildirimGonderHemen(
+                "Sana bir sürpriz var 🎁",
+                "Sevgilin senin için yeni bir sürpriz sakladı 💕"
+              );
+            }
+          }
+          // Her değişiklikte listeyi tazele (basit ve güvenli)
+          get().fetchSurprises();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      if (surprizKanali) {
+        supabase.removeChannel(surprizKanali);
+        surprizKanali = null;
+      }
+    };
+  },
+}));
