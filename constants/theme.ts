@@ -63,7 +63,16 @@ export const DARK = {
   secondary: BRAND.lilaAcik,
 };
 
-export type RenkPaleti = typeof LIGHT;
+export type RenkPaleti = {
+  arkaplan: string;
+  yuzey: string;
+  yuzeyIkincil: string;
+  metin: string;
+  metinIkincil: string;
+  kenarlik: string;
+  primary: string;
+  secondary: string;
+};
 
 // --- Boşluk ölçeği (8'lik grid) ---
 export const SPACING = {
