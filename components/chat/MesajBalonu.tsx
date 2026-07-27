@@ -5,25 +5,51 @@
 //  - Feyzi (assistant): solda, pembe/lila gradyan balon, beyaz yazı
 //  - Kullanıcı (user): sağda, nötr yüzey balonu
 //  - Hata mesajı: solda, soluk nötr balon
+//  - Onay / bilgi kartları ilgili bileşenlere yönlendirilir
 // ====================================================================
 
 import { LinearGradient } from "expo-linear-gradient";
 import { Text, View } from "react-native";
 
+import { BilgiKarti } from "@/components/chat/BilgiKarti";
 import { FeyziAvatar } from "@/components/chat/FeyziAvatar";
+import { OnayKarti } from "@/components/chat/OnayKarti";
 import { GRADIENTS, RADIUS } from "@/constants/theme";
 import type { ChatMessage } from "@/store/chatStore";
 import { usePalet } from "@/store/useThemeStore";
 
 interface MesajBalonuProps {
   message: ChatMessage;
+  onOnayla?: () => void;
+  onReddet?: () => void;
+  onayDisabled?: boolean;
 }
 
-export function MesajBalonu({ message }: MesajBalonuProps) {
+export function MesajBalonu({
+  message,
+  onOnayla,
+  onReddet,
+  onayDisabled,
+}: MesajBalonuProps) {
   const palet = usePalet();
+
+  if (message.tip === "onay" && onOnayla && onReddet) {
+    return (
+      <OnayKarti
+        message={message}
+        onOnayla={onOnayla}
+        onReddet={onReddet}
+        disabled={onayDisabled}
+      />
+    );
+  }
+
+  if (message.tip === "bilgi") {
+    return <BilgiKarti message={message} />;
+  }
+
   const kullanici = message.role === "user";
 
-  // Kullanıcı balonu (sağ, nötr)
   if (kullanici) {
     return (
       <View className="mb-3 flex-row justify-end px-4">
@@ -45,7 +71,6 @@ export function MesajBalonu({ message }: MesajBalonuProps) {
     );
   }
 
-  // Feyzi balonu (sol). Hata ise gradyan yerine soluk nötr balon.
   return (
     <View className="mb-3 flex-row items-end px-4">
       <View className="mr-2">

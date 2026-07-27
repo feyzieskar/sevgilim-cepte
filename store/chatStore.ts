@@ -1,11 +1,11 @@
 // ====================================================================
-// SOHBET STORE (Zustand + Supabase chat_messages)
+// SOHBET STORE (Zustand + Supabase chat_messages + tool onayı)
 // ====================================================================
-// Feyzi ile metin sohbetini yönetir: mesaj geçmişi, seçili mod,
-// gönderme ve temizleme. Mesaj geçmişi Supabase "chat_messages"
-// tablosunda KİŞİSEL olarak saklanır (partner göremez, RLS user_id'ye
-// bağlı). Böylece kullanıcı kendi cihazları arasında geçmişine erişir.
-// Seçili mod cihazda yereldedir (AsyncStorage).
+// Feyzi ile metin sohbetini yönetir. Function calling sonuçları:
+//  - Yazma araçları → sohbette onay kartı (Evet/Hayır)
+//  - Başarılı işlem → "✅ Takvime eklendi" bilgi kartı
+// Mesaj geçmişi Supabase'de kişisel; kartlar (onay/bilgi) yalnızca
+// oturum boyunca yerelde tutulur (DB'ye yazılmaz).
 // ====================================================================
 
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -15,8 +15,19 @@ import { createJSONStorage, persist } from "zustand/middleware";
 import { FeyziMode } from "@/constants/feyziPrompts";
 import { tarihKisa } from "@/constants/tarih";
 import { supabase } from "@/lib/supabase";
-import { FeyziError, feyziyeSor, SohbetMesaji } from "@/services/feyziService";
+import {
+  BekleyenOnay,
+  BilgiKarti,
+  FeyziError,
+  FeyziYanit,
+  feyziyeSor,
+  onayReddiDevam,
+  onaySonrasiDevam,
+  SohbetMesaji,
+} from "@/services/feyziService";
 import { useMemoryStore } from "@/store/memoryStore";
+
+export type ChatMesajTipi = "text" | "onay" | "bilgi";
 
 export interface ChatMessage {
   id: string;
@@ -25,6 +36,12 @@ export interface ChatMessage {
   createdAt: number;
   // Hata mesajı mı? (bağlam olarak API'ye gönderilmez, DB'ye yazılmaz)
   hata?: boolean;
+  // Kart tipi (varsayılan: text)
+  tip?: ChatMesajTipi;
+  // Onay kartı durumu
+  onayDurum?: "bekliyor" | "onaylandi" | "reddedildi";
+  // Bilgi kartı metni (✅ ...)
+  bilgiMetni?: string;
 }
 
 interface ChatMessageRow {
@@ -40,10 +57,16 @@ interface ChatState {
   messages: ChatMessage[];
   currentMode: FeyziMode;
   isLoading: boolean;
+  // Onay bekleyen tool call (tek seferde bir)
+  bekleyenOnay: BekleyenOnay | null;
+  // Onay kartının mesaj id'si
+  bekleyenOnayMesajId: string | null;
 
   fetchMessages: () => Promise<void>;
   setMode: (mode: FeyziMode) => void;
   sendMessage: (metin: string) => Promise<void>;
+  onayla: () => Promise<void>;
+  reddet: () => Promise<void>;
   clearChat: () => Promise<void>;
 }
 
@@ -51,8 +74,6 @@ function yeniId(): string {
   return `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
 }
 
-// Başarılı bir mesajı (hata balonu değil) buluta kaydeder.
-// user_id DB tarafında auth.uid() ile otomatik atanır.
 async function mesajKaydet(
   role: "user" | "assistant",
   content: string,
@@ -64,11 +85,9 @@ async function mesajKaydet(
   if (error) console.warn("[chatStore] mesajKaydet hatası:", error.message);
 }
 
-// Anı modu için son anılardan kısa bir bağlam metni üretir.
 function anilarBaglami(): string {
   const anilar = useMemoryStore.getState().memories;
   if (anilar.length === 0) return "";
-  // En yeni 5 anı
   return [...anilar]
     .sort((a, b) => b.date.localeCompare(a.date))
     .slice(0, 5)
@@ -80,7 +99,6 @@ function anilarBaglami(): string {
     .join("\n");
 }
 
-// Hata koduna göre kullanıcıya gösterilecek nazik mesaj
 function hataMesaji(e: unknown): string {
   if (e instanceof FeyziError) {
     if (e.kod === "NO_KEY")
@@ -91,12 +109,70 @@ function hataMesaji(e: unknown): string {
   return "Şu an cevap veremedim, birazdan tekrar dener misin canım? 💕";
 }
 
+function bilgiMesajlari(bilgiler?: BilgiKarti[]): ChatMessage[] {
+  if (!bilgiler || bilgiler.length === 0) return [];
+  return bilgiler.map((b) => ({
+    id: yeniId(),
+    role: "assistant" as const,
+    content: b.metin,
+    createdAt: Date.now(),
+    tip: "bilgi" as const,
+    bilgiMetni: b.metin,
+  }));
+}
+
+/** FeyziYanit'ı sohbet mesajlarına dönüştürür; onay varsa state'e yazar. */
+function yanitiIsle(
+  yanit: FeyziYanit,
+  set: (
+    partial:
+      | Partial<ChatState>
+      | ((s: ChatState) => Partial<ChatState>)
+  ) => void,
+  mod: FeyziMode
+) {
+  if (yanit.tur === "onay") {
+    const onayMsg: ChatMessage = {
+      id: yeniId(),
+      role: "assistant",
+      content: yanit.onay.ozet,
+      createdAt: Date.now(),
+      tip: "onay",
+      onayDurum: "bekliyor",
+    };
+    set((s) => ({
+      messages: [...s.messages, onayMsg],
+      isLoading: false,
+      bekleyenOnay: yanit.onay,
+      bekleyenOnayMesajId: onayMsg.id,
+    }));
+    return;
+  }
+
+  const ekstra = bilgiMesajlari(yanit.bilgiler);
+  const botMsg: ChatMessage = {
+    id: yeniId(),
+    role: "assistant",
+    content: yanit.metin,
+    createdAt: Date.now(),
+  };
+  set((s) => ({
+    messages: [...s.messages, ...ekstra, botMsg],
+    isLoading: false,
+    bekleyenOnay: null,
+    bekleyenOnayMesajId: null,
+  }));
+  void mesajKaydet("assistant", yanit.metin, mod);
+}
+
 export const useChatStore = create<ChatState>()(
   persist(
     (set, get) => ({
       messages: [],
       currentMode: "normal",
       isLoading: false,
+      bekleyenOnay: null,
+      bekleyenOnayMesajId: null,
 
       fetchMessages: async () => {
         const { data, error } = await supabase
@@ -116,6 +192,8 @@ export const useChatStore = create<ChatState>()(
             content: r.content,
             createdAt: new Date(r.created_at).getTime(),
           })),
+          bekleyenOnay: null,
+          bekleyenOnayMesajId: null,
         });
       },
 
@@ -124,8 +202,9 @@ export const useChatStore = create<ChatState>()(
       sendMessage: async (metin) => {
         const temiz = metin.trim();
         if (temiz === "" || get().isLoading) return;
+        // Onay beklerken yeni mesaj gönderme (karışıklık olmasın)
+        if (get().bekleyenOnay) return;
 
-        // Kullanıcı mesajını ekle
         const userMsg: ChatMessage = {
           id: yeniId(),
           role: "user",
@@ -133,29 +212,17 @@ export const useChatStore = create<ChatState>()(
           createdAt: Date.now(),
         };
         set((s) => ({ messages: [...s.messages, userMsg], isLoading: true }));
-        // Kullanıcı mesajını buluta yaz (beklemeden)
         void mesajKaydet("user", temiz, get().currentMode);
 
         try {
           const mod = get().currentMode;
-
-          // API'ye gönderilecek geçmiş (hata balonları hariç)
           const gecmis: SohbetMesaji[] = get()
-            .messages.filter((m) => !m.hata)
+            .messages.filter((m) => !m.hata && (!m.tip || m.tip === "text"))
             .map((m) => ({ role: m.role, content: m.content }));
 
           const anilar = mod === "ani" ? anilarBaglami() : undefined;
-          const cevap = await feyziyeSor(gecmis, mod, anilar);
-
-          const botMsg: ChatMessage = {
-            id: yeniId(),
-            role: "assistant",
-            content: cevap,
-            createdAt: Date.now(),
-          };
-          set((s) => ({ messages: [...s.messages, botMsg], isLoading: false }));
-          // Feyzi'nin cevabını buluta yaz (hata balonları yazılmaz)
-          void mesajKaydet("assistant", cevap, mod);
+          const yanit = await feyziyeSor(gecmis, mod, anilar);
+          yanitiIsle(yanit, set, mod);
         } catch (e) {
           const errMsg: ChatMessage = {
             id: yeniId(),
@@ -164,13 +231,94 @@ export const useChatStore = create<ChatState>()(
             createdAt: Date.now(),
             hata: true,
           };
-          set((s) => ({ messages: [...s.messages, errMsg], isLoading: false }));
+          set((s) => ({
+            messages: [...s.messages, errMsg],
+            isLoading: false,
+          }));
+        }
+      },
+
+      onayla: async () => {
+        const onay = get().bekleyenOnay;
+        const mesajId = get().bekleyenOnayMesajId;
+        if (!onay || get().isLoading) return;
+
+        if (mesajId) {
+          set((s) => ({
+            messages: s.messages.map((m) =>
+              m.id === mesajId ? { ...m, onayDurum: "onaylandi" } : m
+            ),
+            isLoading: true,
+            bekleyenOnay: null,
+            bekleyenOnayMesajId: null,
+          }));
+        } else {
+          set({ isLoading: true, bekleyenOnay: null, bekleyenOnayMesajId: null });
+        }
+
+        try {
+          const mod = get().currentMode;
+          const yanit = await onaySonrasiDevam(onay);
+          yanitiIsle(yanit, set, mod);
+        } catch (e) {
+          const errMsg: ChatMessage = {
+            id: yeniId(),
+            role: "assistant",
+            content: hataMesaji(e),
+            createdAt: Date.now(),
+            hata: true,
+          };
+          set((s) => ({
+            messages: [...s.messages, errMsg],
+            isLoading: false,
+          }));
+        }
+      },
+
+      reddet: async () => {
+        const onay = get().bekleyenOnay;
+        const mesajId = get().bekleyenOnayMesajId;
+        if (!onay || get().isLoading) return;
+
+        if (mesajId) {
+          set((s) => ({
+            messages: s.messages.map((m) =>
+              m.id === mesajId ? { ...m, onayDurum: "reddedildi" } : m
+            ),
+            isLoading: true,
+            bekleyenOnay: null,
+            bekleyenOnayMesajId: null,
+          }));
+        } else {
+          set({ isLoading: true, bekleyenOnay: null, bekleyenOnayMesajId: null });
+        }
+
+        try {
+          const mod = get().currentMode;
+          const yanit = await onayReddiDevam(onay);
+          yanitiIsle(yanit, set, mod);
+        } catch (e) {
+          const errMsg: ChatMessage = {
+            id: yeniId(),
+            role: "assistant",
+            content: hataMesaji(e),
+            createdAt: Date.now(),
+            hata: true,
+          };
+          set((s) => ({
+            messages: [...s.messages, errMsg],
+            isLoading: false,
+          }));
         }
       },
 
       clearChat: async () => {
-        set({ messages: [], isLoading: false });
-        // Buluttaki kendi mesajlarını sil (RLS sadece kendi satırlarına izin verir)
+        set({
+          messages: [],
+          isLoading: false,
+          bekleyenOnay: null,
+          bekleyenOnayMesajId: null,
+        });
         const { error } = await supabase
           .from("chat_messages")
           .delete()
@@ -181,7 +329,6 @@ export const useChatStore = create<ChatState>()(
     {
       name: "sevgilim-cepte-sohbet",
       storage: createJSONStorage(() => AsyncStorage),
-      // Mesajlar artık bulutta; yerelde yalnızca seçili modu kalıcı yap
       partialize: (s): { currentMode: FeyziMode } => ({
         currentMode: s.currentMode,
       }),

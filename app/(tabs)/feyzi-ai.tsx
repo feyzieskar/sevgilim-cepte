@@ -36,8 +36,11 @@ export default function FeyziAiEkrani() {
   const messages = useChatStore((s) => s.messages);
   const currentMode = useChatStore((s) => s.currentMode);
   const isLoading = useChatStore((s) => s.isLoading);
+  const bekleyenOnay = useChatStore((s) => s.bekleyenOnay);
   const setMode = useChatStore((s) => s.setMode);
   const sendMessage = useChatStore((s) => s.sendMessage);
+  const onayla = useChatStore((s) => s.onayla);
+  const reddet = useChatStore((s) => s.reddet);
   const clearChat = useChatStore((s) => s.clearChat);
 
   const [metin, setMetin] = useState("");
@@ -61,7 +64,7 @@ export default function FeyziAiEkrani() {
     ]);
   };
 
-  const gonderilebilir = metin.trim() !== "" && !isLoading;
+  const gonderilebilir = metin.trim() !== "" && !isLoading && !bekleyenOnay;
 
   return (
     <SafeAreaView edges={["top"]} style={{ flex: 1, backgroundColor: palet.arkaplan }}>
@@ -115,7 +118,14 @@ export default function FeyziAiEkrani() {
           <FlatList
             data={tersMesajlar}
             keyExtractor={(m: ChatMessage) => m.id}
-            renderItem={({ item }) => <MesajBalonu message={item} />}
+            renderItem={({ item }) => (
+              <MesajBalonu
+                message={item}
+                onOnayla={onayla}
+                onReddet={reddet}
+                onayDisabled={isLoading}
+              />
+            )}
             inverted
             contentContainerStyle={{ paddingVertical: 16 }}
             keyboardShouldPersistTaps="handled"
@@ -157,7 +167,11 @@ export default function FeyziAiEkrani() {
             ref={inputRef}
             value={metin}
             onChangeText={setMetin}
-            placeholder="Bir şeyler yaz..."
+            placeholder={
+              bekleyenOnay
+                ? "Önce onayı cevapla..."
+                : "Bir şeyler yaz..."
+            }
             placeholderTextColor={palet.metinIkincil}
             multiline
             style={{
