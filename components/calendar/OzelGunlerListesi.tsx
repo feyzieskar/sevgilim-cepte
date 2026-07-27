@@ -1,90 +1,119 @@
 // ====================================================================
 // OzelGunlerListesi
 // ====================================================================
-// "Bize Özel Günler" görünümü. İki kaynağı birleştirir:
-//   1) data/ozelGunler.ts içindeki HER YIL tekrar eden özel günler
-//      (tanışma yıldönümü, doğum günleri...)
-//   2) Takvim store'unda kategorisi 'ozel_gun' olan etkinlikler
-// Her biri için "kaç gün kaldı" bilgisini gösterir, yakına göre sıralar.
+// "Bize Özel Günler" görünümü. Her yıl tekrar eden özel günleri
+// (Supabase special_days, partnerle ortak) listeler; her biri için
+// "kaç gün kaldı" bilgisini gösterir ve yakına göre sıralar.
+// Bir güne dokununca düzenlenir; (+) ile yenisi eklenir.
 // ====================================================================
 
 import { Ionicons } from "@expo/vector-icons";
-import { useMemo } from "react";
-import { Text, View } from "react-native";
+import { useMemo, useState } from "react";
+import { ActivityIndicator, Pressable, Text, View } from "react-native";
 
+import { OzelGunFormModal } from "@/components/calendar/OzelGunFormModal";
 import { KATEGORILER } from "@/constants/kategoriler";
+import { AYLAR } from "@/constants/tarih";
 import { RADIUS, SHADOWS } from "@/constants/theme";
-import { isoToDate, tarihKisa } from "@/constants/tarih";
 import {
   enYakinOzelGun,
   kalanGun,
-  OZEL_GUNLER,
+  OzelGun,
   sonrakiTarih,
 } from "@/data/ozelGunler";
-import type { CalendarEvent } from "@/store/calendarStore";
+import { OzelGunGirdi, useOzelGunStore } from "@/store/ozelGunStore";
 import { usePalet } from "@/store/useThemeStore";
 
-// Ekranda gösterilecek birleşik öğe
+// Ekranda gösterilecek öğe
 interface OzelGunOgesi {
-  id: string;
-  baslik: string;
-  emoji: string;
+  gun: OzelGun;
   kalan: number;
   tarihMetni: string;
-  tekrarEden: boolean;
 }
 
-interface OzelGunlerListesiProps {
-  events: CalendarEvent[];
-}
-
-export function OzelGunlerListesi({ events }: OzelGunlerListesiProps) {
+export function OzelGunlerListesi() {
   const palet = usePalet();
   const ozelRenk = KATEGORILER.ozel_gun.renk;
 
+  const ozelGunler = useOzelGunStore((s) => s.ozelGunler);
+  const addOzelGun = useOzelGunStore((s) => s.addOzelGun);
+  const updateOzelGun = useOzelGunStore((s) => s.updateOzelGun);
+  const deleteOzelGun = useOzelGunStore((s) => s.deleteOzelGun);
+  const loading = useOzelGunStore((s) => s.loading);
+  const yuklendiMi = useOzelGunStore((s) => s.yuklendiMi);
+
+  const [modalAcik, setModalAcik] = useState(false);
+  const [duzenlenen, setDuzenlenen] = useState<OzelGun | null>(null);
+
   const ogeler = useMemo<OzelGunOgesi[]>(() => {
     const bugun = new Date();
+    return ozelGunler
+      .map((g) => {
+        const tarih = sonrakiTarih(g, bugun);
+        return {
+          gun: g,
+          kalan: kalanGun(tarih, bugun),
+          tarihMetni: `${g.gun} ${AYLAR[g.ay - 1]}`,
+        };
+      })
+      .sort((a, b) => a.kalan - b.kalan);
+  }, [ozelGunler]);
 
-    // 1) Tekrar eden özel günler
-    const tekrarEdenler: OzelGunOgesi[] = OZEL_GUNLER.map((g) => {
-      const tarih = sonrakiTarih(g, bugun);
-      return {
-        id: `tekrar-${g.id}`,
-        baslik: g.baslik,
-        emoji: g.emoji,
-        kalan: kalanGun(tarih, bugun),
-        tarihMetni: tarihKisa(
-          `${tarih.getFullYear()}-${String(tarih.getMonth() + 1).padStart(2, "0")}-${String(tarih.getDate()).padStart(2, "0")}`
-        ),
-        tekrarEden: true,
-      };
-    });
+  const enYakin = useMemo(() => enYakinOzelGun(ozelGunler), [ozelGunler]);
 
-    // 2) Store'daki 'ozel_gun' etkinlikleri (yalnızca yaklaşanlar)
-    const storeOgeleri: OzelGunOgesi[] = events
-      .filter((e) => e.category === "ozel_gun")
-      .map((e) => ({
-        id: e.id,
-        baslik: e.title,
-        emoji: "⭐",
-        kalan: kalanGun(isoToDate(e.date), bugun),
-        tarihMetni: tarihKisa(e.date),
-        tekrarEden: false,
-      }))
-      .filter((o) => o.kalan >= 0);
+  const yeniEkle = () => {
+    setDuzenlenen(null);
+    setModalAcik(true);
+  };
 
-    return [...tekrarEdenler, ...storeOgeleri].sort((a, b) => a.kalan - b.kalan);
-  }, [events]);
+  const duzenle = (g: OzelGun) => {
+    setDuzenlenen(g);
+    setModalAcik(true);
+  };
 
-  const enYakin = enYakinOzelGun();
+  const kaydet = async (veri: OzelGunGirdi) => {
+    if (duzenlenen) {
+      await updateOzelGun(duzenlenen.id, veri);
+    } else {
+      await addOzelGun(veri);
+    }
+    setModalAcik(false);
+    setDuzenlenen(null);
+  };
+
+  const sil = async (id: string) => {
+    await deleteOzelGun(id);
+    setModalAcik(false);
+    setDuzenlenen(null);
+  };
 
   return (
     <View className="gap-3">
+      {/* Yeni özel gün ekleme butonu */}
+      <Pressable
+        onPress={yeniEkle}
+        className="flex-row items-center justify-center rounded-2xl py-3"
+        style={{ backgroundColor: ozelRenk + "22", borderWidth: 1, borderColor: ozelRenk }}
+      >
+        <Ionicons name="add-circle" size={20} color={ozelRenk} />
+        <Text className="ml-2 font-bold" style={{ color: ozelRenk }}>
+          Yeni Özel Gün Ekle
+        </Text>
+      </Pressable>
+
+      {/* İlk yükleme göstergesi */}
+      {!yuklendiMi && loading ? (
+        <View className="items-center py-6">
+          <ActivityIndicator color={palet.primary} />
+        </View>
+      ) : null}
+
       {ogeler.map((o) => {
-        const vurgu = enYakin && o.id === `tekrar-${enYakin.gun.id}`;
+        const vurgu = enYakin && o.gun.id === enYakin.gun.id;
         return (
-          <View
-            key={o.id}
+          <Pressable
+            key={o.gun.id}
+            onPress={() => duzenle(o.gun)}
             className="flex-row items-center p-4"
             style={{
               backgroundColor: palet.yuzey,
@@ -99,19 +128,18 @@ export function OzelGunlerListesi({ events }: OzelGunlerListesiProps) {
               className="mr-3 h-12 w-12 items-center justify-center rounded-full"
               style={{ backgroundColor: ozelRenk + "22" }}
             >
-              <Text className="text-xl">{o.emoji}</Text>
+              <Text className="text-xl">{o.gun.emoji}</Text>
             </View>
 
             {/* Başlık + tarih */}
             <View className="flex-1">
               <Text className="text-base font-bold" style={{ color: palet.metin }}>
-                {o.baslik}
+                {o.gun.baslik}
               </Text>
               <View className="mt-0.5 flex-row items-center">
                 <Ionicons name="calendar-outline" size={13} color={palet.metinIkincil} />
                 <Text className="ml-1 text-xs" style={{ color: palet.metinIkincil }}>
-                  {o.tarihMetni}
-                  {o.tekrarEden ? " · her yıl" : ""}
+                  {o.tarihMetni} · her yıl
                 </Text>
               </View>
             </View>
@@ -131,16 +159,28 @@ export function OzelGunlerListesi({ events }: OzelGunlerListesiProps) {
                 </Text>
               )}
             </View>
-          </View>
+          </Pressable>
         );
       })}
 
-      {ogeler.length === 0 ? (
+      {yuklendiMi && ogeler.length === 0 ? (
         <Text className="mt-8 text-center" style={{ color: palet.metinIkincil }}>
-          Henüz özel gün yok. Yeni bir özel gün eklemek için takvimden
-          "Özel Gün" kategorisinde bir etkinlik oluştur 💜
+          Henüz özel gün yok. Yukarıdaki "Yeni Özel Gün Ekle" ile
+          yıldönümünüzü, doğum günlerinizi ekleyin 💜
         </Text>
       ) : null}
+
+      {/* Ekle / Düzenle modalı */}
+      <OzelGunFormModal
+        visible={modalAcik}
+        onClose={() => {
+          setModalAcik(false);
+          setDuzenlenen(null);
+        }}
+        duzenlenen={duzenlenen}
+        onKaydet={kaydet}
+        onSil={sil}
+      />
     </View>
   );
 }

@@ -3,8 +3,9 @@
 // ====================================================================
 // Sürprizler artık bulutta (Supabase "surprises" tablosu) saklanır.
 // Ben bir sürpriz eklediğimde sevgilimin ekranında Realtime ile ANINDA
-// görünür (ve bildirim düşer). Fotoğraflar "surprise-media" bucket'ına
-// yüklenir. before_trip koşulu için calendarStore okunur.
+// görünür; uzaktan push (sendPushToPartner) partner'ın telefonuna düşer.
+// Fotoğraflar "surprise-media" bucket'ına yüklenir.
+// before_trip koşulu için calendarStore okunur.
 // ====================================================================
 
 import { RealtimeChannel } from "@supabase/supabase-js";
@@ -13,9 +14,8 @@ import { create } from "zustand";
 import { TATIL_ESIK_GUN, UnlockType } from "@/constants/surpriz";
 import { bugunISO, isoToDate } from "@/constants/tarih";
 import { supabase } from "@/lib/supabase";
-import { bildirimGonderHemen } from "@/services/notifications";
+import { sendPushToPartner } from "@/services/pushService";
 import { fotoSil, fotoYukle } from "@/services/storageService";
-import { useAuthStore } from "@/store/authStore";
 import { useCalendarStore } from "@/store/calendarStore";
 
 // --- Veri modeli (uygulama tarafı) ---
@@ -185,6 +185,14 @@ export const useSurpriseStore = create<SurpriseState>((set, get) => ({
         ? s
         : { surprises: [yeni, ...s.surprises] }
     );
+
+    // Partner'a uzaktan push (uygulama kapalıyken bile ulaşır)
+    void sendPushToPartner(
+      "Sana bir sürpriz var 🎁",
+      "Sevgilin senin için yeni bir sürpriz sakladı 💕",
+      { screen: "surprizler" }
+    );
+
     return yeni;
   },
 
@@ -239,19 +247,9 @@ export const useSurpriseStore = create<SurpriseState>((set, get) => ({
       .on(
         "postgres_changes",
         { event: "*", schema: "public", table: "surprises" },
-        (payload) => {
-          // Partner yeni sürpriz eklediyse bildirim gönder
-          if (payload.eventType === "INSERT") {
-            const yeni = payload.new as SurpriseRow;
-            const benimId = useAuthStore.getState().user?.id;
-            if (yeni.created_by && yeni.created_by !== benimId) {
-              bildirimGonderHemen(
-                "Sana bir sürpriz var 🎁",
-                "Sevgilin senin için yeni bir sürpriz sakladı 💕"
-              );
-            }
-          }
-          // Her değişiklikte listeyi tazele (basit ve güvenli)
+        (_payload) => {
+          // Listeyi tazele; uzaktan push gönderimi ekleyen tarafta yapılır
+          // (sendPushToPartner) — burada yerel bildirim yok.
           get().fetchSurprises();
         }
       )

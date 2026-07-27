@@ -249,6 +249,42 @@ create policy "love_reasons_delete" on public.love_reasons
 
 
 -- ====================================================================
+-- 5b) special_days — Bize özel günler (ORTAK, her yıl tekrar eder)
+-- ====================================================================
+-- Yıldönümü, doğum günleri gibi her yıl tekrar eden günler. Yıl tutulmaz;
+-- sadece ay (1-12) ve gün (1-31). Çift ortak görür/düzenler (RLS linked).
+create table if not exists public.special_days (
+  id         uuid primary key default gen_random_uuid(),
+  title      text not null,
+  emoji      text not null default '💕',
+  month      int  not null check (month between 1 and 12),
+  day        int  not null check (day between 1 and 31),
+  created_by uuid not null default auth.uid()
+               references auth.users(id) on delete cascade,
+  created_at timestamptz not null default now()
+);
+
+alter table public.special_days enable row level security;
+
+drop policy if exists "special_days_select" on public.special_days;
+create policy "special_days_select" on public.special_days
+  for select using (created_by in (select public.linked_user_ids()));
+
+drop policy if exists "special_days_insert" on public.special_days;
+create policy "special_days_insert" on public.special_days
+  for insert with check (created_by = auth.uid());
+
+drop policy if exists "special_days_update" on public.special_days;
+create policy "special_days_update" on public.special_days
+  for update using (created_by in (select public.linked_user_ids()))
+  with check (created_by in (select public.linked_user_ids()));
+
+drop policy if exists "special_days_delete" on public.special_days;
+create policy "special_days_delete" on public.special_days
+  for delete using (created_by in (select public.linked_user_ids()));
+
+
+-- ====================================================================
 -- 6) chat_messages — Feyzi sohbet geçmişi (KİŞİSEL, paylaşılmaz)
 -- ====================================================================
 -- Her kullanıcının Feyzi sohbeti kendine özeldir; partner göremez.
@@ -288,6 +324,7 @@ create policy "chat_delete" on public.chat_messages
 alter publication supabase_realtime add table public.events;
 alter publication supabase_realtime add table public.surprises;
 alter publication supabase_realtime add table public.love_reasons;
+alter publication supabase_realtime add table public.special_days;
 -- (İstersen memories de eklenebilir)
 -- alter publication supabase_realtime add table public.memories;
 
@@ -342,6 +379,14 @@ create policy "media_delete" on storage.objects
 --     bucket_id in ('memory-photos','surprise-media')
 --     and owner in (select public.linked_user_ids())
 --   );
+
+
+-- ====================================================================
+-- 8b) FAZ 3 — Uzaktan push: profiles.expo_push_token
+-- ====================================================================
+-- Her cihaz girişte Expo Push Token'ını buraya yazar; Edge Function
+-- send-push bu kolonu okuyup Expo Push API'ye iletir.
+alter table public.profiles add column if not exists expo_push_token text;
 
 
 -- ====================================================================

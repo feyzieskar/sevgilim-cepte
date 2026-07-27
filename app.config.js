@@ -18,5 +18,13 @@ export default ({ config }) => ({
   extra: {
     ...(config.extra ?? {}),
     openaiApiKey: process.env.OPENAI_API_KEY ?? null,
+    // Expo Push Token için EAS projectId (eas init sonrası .env'ye yaz)
+    eas: {
+      ...((config.extra && config.extra.eas) || {}),
+      projectId:
+        process.env.EXPO_PUBLIC_EAS_PROJECT_ID ??
+        (config.extra && config.extra.eas && config.extra.eas.projectId) ??
+        undefined,
+    },
   },
 });

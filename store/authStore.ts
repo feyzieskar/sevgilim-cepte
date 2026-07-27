@@ -16,6 +16,7 @@ import { Session, User } from "@supabase/supabase-js";
 import { create } from "zustand";
 
 import { supabase } from "@/lib/supabase";
+import { kaydetPushToken, temizlePushToken } from "@/services/pushService";
 
 // signIn/signUp sonucu: hata varsa kullanıcıya gösterilecek mesaj döner.
 export interface AuthSonuc {
@@ -78,11 +79,21 @@ export const useAuthStore = create<AuthState>((set) => ({
       initialized: true,
     });
 
+    // Açılışta zaten oturum varsa push token'ı yenile / kaydet
+    if (data.session?.user) {
+      void kaydetPushToken();
+    }
+
     // 2) Bundan sonraki tüm oturum değişikliklerini dinle
     //    (giriş, çıkış, token yenileme...) ve store'u güncelle
-    supabase.auth.onAuthStateChange((_event, session) => {
+    supabase.auth.onAuthStateChange((event, session) => {
       supabase.realtime.setAuth(session?.access_token ?? null);
       set({ session, user: session?.user ?? null });
+
+      // Yeni girişte push token kaydet
+      if (session?.user && event === "SIGNED_IN") {
+        void kaydetPushToken();
+      }
     });
   },
 
@@ -113,6 +124,8 @@ export const useAuthStore = create<AuthState>((set) => ({
   },
 
   signOut: async () => {
+    // Çıkıştan önce token'ı temizle (cihaz eşleşmesini kopar)
+    await temizlePushToken();
     await supabase.auth.signOut();
     set({ session: null, user: null });
   },

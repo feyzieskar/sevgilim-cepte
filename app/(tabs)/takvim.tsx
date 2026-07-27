@@ -301,7 +301,7 @@ export default function TakvimEkrani() {
             )}
           </>
         ) : (
-          <OzelGunlerListesi events={events} />
+          <OzelGunlerListesi />
         )}
       </ScrollView>
 

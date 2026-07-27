@@ -8,19 +8,46 @@
 //  - Başlangıçta cihaz temasını uygulamaya uygular
 //  - Auth: açılışta session kontrol edilir; giriş yoksa (auth) grubuna,
 //    varsa (tabs) grubuna yönlendirilir (route guard).
+//  - Push: bildirime tıklanınca data.screen ile ilgili sekmeye gider.
 // ====================================================================
 
 import "@/global.css";
 
-import { Stack, useRouter, useSegments } from "expo-router";
+import * as Notifications from "expo-notifications";
+import { Href, Stack, useRouter, useSegments } from "expo-router";
 import { StatusBar } from "expo-status-bar";
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { ActivityIndicator, useColorScheme, View } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 
 import { useAuthStore } from "@/store/authStore";
 import { usePalet, useThemeStore } from "@/store/useThemeStore";
+
+// Bildirim data.screen → expo-router yolu
+const EKRAN_YOLLARI: Record<string, Href> = {
+  surprizler: "/(tabs)/surprizler",
+  takvim: "/(tabs)/takvim",
+  anilar: "/(tabs)/anilar",
+  "feyzi-ai": "/(tabs)/feyzi-ai",
+  index: "/(tabs)",
+  bugun: "/(tabs)",
+  duygular: "/(tabs)", // ileride ayrı sekme olursa güncellenir
+};
+
+function bildirimeGoreYonlendir(
+  router: ReturnType<typeof useRouter>,
+  data: Record<string, unknown> | undefined
+) {
+  const screen = typeof data?.screen === "string" ? data.screen : null;
+  if (!screen) return;
+  const yol = EKRAN_YOLLARI[screen] ?? (`/(tabs)/${screen}` as Href);
+  try {
+    router.push(yol);
+  } catch (e) {
+    console.warn("[bildirim] yönlendirme hatası:", e);
+  }
+}
 
 // Oturum durumuna göre doğru gruba yönlendiren guard hook'u.
 function useAuthGuard() {
@@ -45,6 +72,37 @@ function useAuthGuard() {
   }, [session, initialized, segments, router]);
 }
 
+// Bildirime tıklanınca ilgili ekrana yönlendirir.
+function useBildirimYonlendirme() {
+  const router = useRouter();
+  const session = useAuthStore((s) => s.session);
+  const yanitDinleyici = useRef<Notifications.Subscription | null>(null);
+
+  useEffect(() => {
+    // Uygulama kapalıyken bildirime tıklayıp açıldıysa
+    void Notifications.getLastNotificationResponseAsync().then((yanit) => {
+      if (!yanit || !session) return;
+      const data = yanit.notification.request.content.data as
+        | Record<string, unknown>
+        | undefined;
+      bildirimeGoreYonlendir(router, data);
+    });
+
+    // Uygulama açık/arka plandayken tıklama
+    yanitDinleyici.current =
+      Notifications.addNotificationResponseReceivedListener((yanit) => {
+        const data = yanit.notification.request.content.data as
+          | Record<string, unknown>
+          | undefined;
+        bildirimeGoreYonlendir(router, data);
+      });
+
+    return () => {
+      yanitDinleyici.current?.remove();
+    };
+  }, [router, session]);
+}
+
 export default function RootLayout() {
   // Cihazın sistem teması (açık/koyu)
   const sistemTemasi = useColorScheme();
@@ -65,6 +123,7 @@ export default function RootLayout() {
   }, [initialize]);
 
   useAuthGuard();
+  useBildirimYonlendirme();
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>

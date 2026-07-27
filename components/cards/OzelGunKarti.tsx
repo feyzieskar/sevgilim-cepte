@@ -1,19 +1,17 @@
 // ====================================================================
 // OzelGunKarti  (Ana ekran kartı #2)
 // ====================================================================
-// En yakın özel güne geri sayım gösterir. İki kaynağı birleştirir:
-//   1) Sabit, her yıl tekrar eden özel günler (yıldönümü, doğum günü...)
-//   2) Takvime eklenen "Özel Gün" (ozel_gun) kategorili etkinlikler
-// Böylece takvime yeni bir özel gün eklenince sayaç anında güncellenir.
+// En yakın özel güne geri sayım gösterir. Kaynak: her yıl tekrar eden
+// özel günler (Supabase special_days — yıldönümü, doğum günü...).
+// Partner bir özel gün ekleyince/düzenleyince sayaç anında güncellenir.
 // ====================================================================
 
 import { useMemo } from "react";
 import { Text, View } from "react-native";
 
 import { GradientCard } from "@/components/ui/GradientCard";
-import { bugunISO, isoToDate } from "@/constants/tarih";
-import { enYakinOzelGun, kalanGun } from "@/data/ozelGunler";
-import { useCalendarStore } from "@/store/calendarStore";
+import { enYakinOzelGun } from "@/data/ozelGunler";
+import { useOzelGunStore } from "@/store/ozelGunStore";
 
 interface Aday {
   baslik: string;
@@ -22,37 +20,17 @@ interface Aday {
 }
 
 export function OzelGunKarti() {
-  const events = useCalendarStore((s) => s.events);
+  const ozelGunler = useOzelGunStore((s) => s.ozelGunler);
 
   const yakin = useMemo<Aday | null>(() => {
-    const bugun = new Date();
-    const adaylar: Aday[] = [];
-
-    // 1) Tekrar eden özel günler
-    const tekrar = enYakinOzelGun(bugun);
-    if (tekrar) {
-      adaylar.push({
-        baslik: tekrar.gun.baslik,
-        emoji: tekrar.gun.emoji,
-        kalan: tekrar.kalan,
-      });
-    }
-
-    // 2) Takvimdeki "özel gün" kategorili, bugünden itibaren olan etkinlikler
-    const buISO = bugunISO(bugun);
-    for (const e of events) {
-      if (e.category !== "ozel_gun" || e.date < buISO) continue;
-      adaylar.push({
-        baslik: e.title,
-        emoji: "⭐",
-        kalan: kalanGun(isoToDate(e.date), bugun),
-      });
-    }
-
-    if (adaylar.length === 0) return null;
-    adaylar.sort((a, b) => a.kalan - b.kalan);
-    return adaylar[0];
-  }, [events]);
+    const tekrar = enYakinOzelGun(ozelGunler);
+    if (!tekrar) return null;
+    return {
+      baslik: tekrar.gun.baslik,
+      emoji: tekrar.gun.emoji,
+      kalan: tekrar.kalan,
+    };
+  }, [ozelGunler]);
 
   if (!yakin) return null;
 

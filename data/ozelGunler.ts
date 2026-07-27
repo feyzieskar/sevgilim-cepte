@@ -1,9 +1,9 @@
 // ====================================================================
-// BİZE ÖZEL GÜNLER
+// BİZE ÖZEL GÜNLER (yardımcılar + tip)
 // ====================================================================
-// Yıldönümü, doğum günleri gibi her yıl tekrar eden özel günler.
-// Ana ekrandaki "Sonraki Özel Gün" kartı ve Takvim'deki "Bize Özel
-// Günler" sekmesi bu listeyi kullanır.
+// Yıldönümü, doğum günleri gibi her yıl tekrar eden özel günler artık
+// Supabase'de saklanır (bkz. store/ozelGunStore.ts). Bu dosya yalnızca
+// ortak tip (OzelGun) ve tarih hesaplama yardımcılarını barındırır.
 //
 // ay: 1-12, gun: 1-31 (yıl bilgisi tutulmaz; her yıl tekrar eder)
 // ====================================================================
@@ -15,15 +15,6 @@ export interface OzelGun {
   gun: number;
   emoji: string;
 }
-
-export const OZEL_GUNLER: OzelGun[] = [
-  { id: "tanisma", baslik: "Tanışma Yıldönümümüz", ay: 9, gun: 14, emoji: "💕" },
-  { id: "sevgili", baslik: "Sevgili Olduğumuz Gün", ay: 10, gun: 2, emoji: "💘" },
-  { id: "onun-dogum", baslik: "Doğum Günün", ay: 4, gun: 23, emoji: "🎂" },
-  { id: "benim-dogum", baslik: "Benim Doğum Günüm", ay: 7, gun: 8, emoji: "🎉" },
-  { id: "ilk-tatil", baslik: "İlk Tatilimiz", ay: 6, gun: 19, emoji: "🏖️" },
-  { id: "sevgililer", baslik: "Sevgililer Günü", ay: 2, gun: 14, emoji: "🌹" },
-];
 
 // ---------------------------------------------------------------
 // Yardımcı: Bir özel günün bu yıl/gelecek yıl içindeki bir sonraki
@@ -58,16 +49,19 @@ export function kalanGun(hedef: Date, bugun: Date = new Date()): number {
 }
 
 // ---------------------------------------------------------------
-// Yardımcı: En yakın özel günü ve kalan gün sayısını bulur.
+// Yardımcı: Verilen listede en yakın özel günü ve kalan gün sayısını bulur.
 // ---------------------------------------------------------------
-export function enYakinOzelGun(bugun: Date = new Date()): {
+export function enYakinOzelGun(
+  liste: OzelGun[],
+  bugun: Date = new Date()
+): {
   gun: OzelGun;
   tarih: Date;
   kalan: number;
 } | null {
-  if (OZEL_GUNLER.length === 0) return null;
+  if (liste.length === 0) return null;
 
-  const adaylar = OZEL_GUNLER.map((g) => {
+  const adaylar = liste.map((g) => {
     const tarih = sonrakiTarih(g, bugun);
     return { gun: g, tarih, kalan: kalanGun(tarih, bugun) };
   });
