@@ -15,6 +15,7 @@ import { supabase } from "@/lib/supabase";
 export interface LoveReason {
   id: string;
   text: string;
+  createdBy: string;
   createdAt: number;
 }
 
@@ -40,6 +41,7 @@ function satiriSebebeCevir(r: LoveReasonRow): LoveReason {
   return {
     id: r.id,
     text: r.text,
+    createdBy: r.created_by,
     createdAt: new Date(r.created_at).getTime(),
   };
 }
