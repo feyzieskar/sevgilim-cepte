@@ -33,6 +33,10 @@ const EKRAN_YOLLARI: Record<string, Href> = {
   "feyzi-ai": "/(tabs)/feyzi-ai",
   streak: "/(tabs)/streak",
   menu: "/(tabs)/menu",
+  "ruh-hali": "/ruh-hali",
+  "bucket-list": "/bucket-list",
+  "sevme-sebepleri": "/sevme-sebepleri",
+  profil: "/profil",
   index: "/(tabs)",
   bugun: "/(tabs)",
 };
@@ -137,6 +141,10 @@ export default function RootLayout() {
             <Stack.Screen name="(tabs)" />
             <Stack.Screen name="anilar" />
             <Stack.Screen name="duygular" />
+            <Stack.Screen name="ruh-hali" />
+            <Stack.Screen name="bucket-list" />
+            <Stack.Screen name="sevme-sebepleri" />
+            <Stack.Screen name="profil" />
             <Stack.Screen name="ani/[id]" />
           </Stack>
         ) : (
