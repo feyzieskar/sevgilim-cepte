@@ -18,7 +18,7 @@ export function FeyziAiKarti() {
     <GradientCard
       gradient
       gradientTipi="sakin"
-      onPress={() => router.push("/feyzi-ai")}
+      onPress={() => router.push("/(tabs)/feyzi-ai")}
     >
       <View className="flex-row items-center justify-between">
         <View className="flex-1 pr-3">

@@ -26,11 +26,13 @@ import { usePalet, useThemeStore } from "@/store/useThemeStore";
 
 // Bildirim data.screen → expo-router yolu
 const EKRAN_YOLLARI: Record<string, Href> = {
-  duygular: "/(tabs)/duygular",
-  surprizler: "/(tabs)/duygular",
+  duygular: "/duygular",
+  surprizler: "/duygular",
   takvim: "/(tabs)/takvim",
-  anilar: "/(tabs)/anilar",
+  anilar: "/anilar",
   "feyzi-ai": "/(tabs)/feyzi-ai",
+  streak: "/(tabs)/streak",
+  menu: "/(tabs)/menu",
   index: "/(tabs)",
   bugun: "/(tabs)",
 };
@@ -133,6 +135,9 @@ export default function RootLayout() {
           <Stack screenOptions={{ headerShown: false }}>
             <Stack.Screen name="(auth)" />
             <Stack.Screen name="(tabs)" />
+            <Stack.Screen name="anilar" />
+            <Stack.Screen name="duygular" />
+            <Stack.Screen name="ani/[id]" />
           </Stack>
         ) : (
           // Session kontrol edilirken kısa bir yükleme ekranı

@@ -1,15 +1,22 @@
 // ====================================================================
 // ALT TAB BAR YERLEŞİMİ
 // ====================================================================
-// 5 sekmeli alt navigasyon:
-//   🏠 Bugün Biz | 📅 Takvim | 📸 Anılar | 💬 Feyzi AI | 💕 Duygular
-// Sekme ikonları @expo/vector-icons (Ionicons) ile çizilir.
+// Alt navigasyon:
+//   🏠 Bugün Biz | 🔥 Streak | 📅 Takvim | 💕 Feyzi AI | ☰ Menü
+// Anılar / Duygular Menü altından stack route olarak açılır.
+// Eski tab rotaları Redirect ile korunur (bildirim / eski linkler).
 // Renkler aktif tema paletine göre belirlenir.
 // ====================================================================
 
-import { Ionicons } from "@expo/vector-icons";
 import { Tabs } from "expo-router";
 import { useEffect } from "react";
+import {
+  Calendar,
+  Flame,
+  Home,
+  Menu,
+  MessageCircle,
+} from "lucide-react-native";
 
 import { useCalendarStore } from "@/store/calendarStore";
 import { useChatStore } from "@/store/chatStore";
@@ -69,7 +76,13 @@ export default function TabsLayout() {
       unsubReasons();
       unsubOzelGunler();
     };
-  }, [subscribeEvents, subscribeSurprises, subscribeReasons, subscribeOzelGunler, subscribeEmotions]);
+  }, [
+    subscribeEvents,
+    subscribeSurprises,
+    subscribeReasons,
+    subscribeOzelGunler,
+    subscribeEmotions,
+  ]);
 
   return (
     <Tabs
@@ -95,7 +108,16 @@ export default function TabsLayout() {
         options={{
           title: "Bugün Biz",
           tabBarIcon: ({ color, size }) => (
-            <Ionicons name="home" size={size} color={color} />
+            <Home size={size} color={color} strokeWidth={2.2} />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="streak"
+        options={{
+          title: "Streak",
+          tabBarIcon: ({ color, size }) => (
+            <Flame size={size} color={color} strokeWidth={2.2} />
           ),
         }}
       />
@@ -104,16 +126,7 @@ export default function TabsLayout() {
         options={{
           title: "Takvim",
           tabBarIcon: ({ color, size }) => (
-            <Ionicons name="calendar" size={size} color={color} />
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="anilar"
-        options={{
-          title: "Anılar",
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="images" size={size} color={color} />
+            <Calendar size={size} color={color} strokeWidth={2.2} />
           ),
         }}
       />
@@ -122,24 +135,17 @@ export default function TabsLayout() {
         options={{
           title: "Feyzi AI",
           tabBarIcon: ({ color, size }) => (
-            <Ionicons name="chatbubbles" size={size} color={color} />
+            <MessageCircle size={size} color={color} strokeWidth={2.2} />
           ),
         }}
       />
       <Tabs.Screen
-        name="duygular"
+        name="menu"
         options={{
-          title: "Duygular",
+          title: "Menü",
           tabBarIcon: ({ color, size }) => (
-            <Ionicons name="heart" size={size} color={color} />
+            <Menu size={size} color={color} strokeWidth={2.2} />
           ),
-        }}
-      />
-      {/* Eski rota: push bildirimleri surprizler ekranına yönlenebilir */}
-      <Tabs.Screen
-        name="surprizler"
-        options={{
-          href: null,
         }}
       />
     </Tabs>

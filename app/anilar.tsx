@@ -1,12 +1,12 @@
 // ====================================================================
-// ANILAR SEKMESİ
+// ANILAR EKRANI  (stack route — Menü üzerinden açılır)
 // ====================================================================
 // - "Bu gün ne olmuştu?" bölümü (üstte)
 // - Filtre: Tümü / Favoriler / Harita
 // - Zaman tüneli (en yeni üstte) fotoğraf kartları
 // - Harita görünümü (konumlu anılar pin olarak)
 // - (+) ile yeni anı ekleme, boş durum mesajı
-// Veriler Zustand + AsyncStorage'da kalıcıdır (backend yok).
+// Veriler Supabase memoryStore üzerinden gelir.
 // ====================================================================
 
 import { Ionicons } from "@expo/vector-icons";
@@ -86,7 +86,11 @@ export default function AnilarEkrani() {
   return (
     <SafeAreaView edges={["top"]} style={{ flex: 1, backgroundColor: palet.arkaplan }}>
       <View className="px-5 pt-2">
-        <EkranBasligi baslik="Anılar" altBaslik="Birlikte yarattığımız anlar 📸" />
+        <EkranBasligi
+          baslik="Anılar"
+          altBaslik="Birlikte yarattığımız anlar 📸"
+          geriDugmesi
+        />
 
         {/* Filtre seçici */}
         <View

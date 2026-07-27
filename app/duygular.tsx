@@ -1,5 +1,5 @@
 // ====================================================================
-// DUYGULAR SEKMESİ
+// DUYGULAR EKRANI  (stack route — Menü üzerinden açılır)
 // ====================================================================
 // 3 alt bölüm (segmented control):
 //   🍽️ Karnım Acıktı — açlık seviyesi + yemek önerisi + push
@@ -39,7 +39,7 @@ export default function DuygularEkrani() {
   return (
     <SafeAreaView edges={["top"]} style={{ flex: 1, backgroundColor: palet.arkaplan }}>
       <View className="px-5 pt-2">
-        <EkranBasligi baslik="Duygular" altBaslik={altBaslik} />
+        <EkranBasligi baslik="Duygular" altBaslik={altBaslik} geriDugmesi />
       </View>
 
       <View className="mt-3">
