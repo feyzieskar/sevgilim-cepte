@@ -25,6 +25,7 @@ import { useMemoryStore } from "@/store/memoryStore";
 import { useOzelGunStore } from "@/store/ozelGunStore";
 import { useEmotionStore } from "@/store/emotionStore";
 import { useSurpriseStore } from "@/store/surpriseStore";
+import { useBucketListStore } from "@/store/bucketListStore";
 import { useMoodStore } from "@/store/moodStore";
 import { useStreakStore } from "@/store/streakStore";
 import { usePalet } from "@/store/useThemeStore";
@@ -40,6 +41,7 @@ export default function TabsLayout() {
   const fetchOzelGunler = useOzelGunStore((s) => s.fetchOzelGunler);
   const yukleStreak = useStreakStore((s) => s.yukle);
   const yukleMood = useMoodStore((s) => s.yukle);
+  const fetchBucketList = useBucketListStore((s) => s.fetchItems);
   const subscribeEvents = useCalendarStore((s) => s.subscribeRealtime);
   const subscribeSurprises = useSurpriseStore((s) => s.subscribeRealtime);
   const subscribeEmotions = useEmotionStore((s) => s.subscribeRealtime);
@@ -47,6 +49,7 @@ export default function TabsLayout() {
   const subscribeOzelGunler = useOzelGunStore((s) => s.subscribeRealtime);
   const subscribeStreak = useStreakStore((s) => s.subscribeRealtime);
   const subscribeMood = useMoodStore((s) => s.subscribeRealtime);
+  const subscribeBucketList = useBucketListStore((s) => s.subscribeRealtime);
 
   // Giriş sonrası uygulama açılınca bulut verisini bir kez çek.
   // Böylece hem ana ekran kartları hem ilgili sekmeler aynı veriyi kullanır.
@@ -60,6 +63,7 @@ export default function TabsLayout() {
     fetchOzelGunler();
     yukleStreak();
     yukleMood();
+    fetchBucketList();
   }, [
     fetchEvents,
     fetchMemories,
@@ -70,6 +74,7 @@ export default function TabsLayout() {
     fetchOzelGunler,
     yukleStreak,
     yukleMood,
+    fetchBucketList,
   ]);
 
   // Realtime: partner etkinlik/sürpriz/sevme sebebi/özel gün eklediğinde ekran anında güncellenir.
@@ -81,6 +86,7 @@ export default function TabsLayout() {
     const unsubOzelGunler = subscribeOzelGunler();
     const unsubStreak = subscribeStreak();
     const unsubMood = subscribeMood();
+    const unsubBucketList = subscribeBucketList();
     return () => {
       unsubEvents();
       unsubSurprises();
@@ -89,6 +95,7 @@ export default function TabsLayout() {
       unsubOzelGunler();
       unsubStreak();
       unsubMood();
+      unsubBucketList();
     };
   }, [
     subscribeEvents,
@@ -98,6 +105,7 @@ export default function TabsLayout() {
     subscribeEmotions,
     subscribeStreak,
     subscribeMood,
+    subscribeBucketList,
   ]);
 
   return (

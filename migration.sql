@@ -585,6 +585,51 @@ alter publication supabase_realtime add table public.moods;
 
 
 -- ====================================================================
+-- 8e) bucket_list — Ortak yapılacaklar / hayaller listesi
+-- ====================================================================
+create table if not exists public.bucket_list (
+  id                   uuid primary key default gen_random_uuid(),
+  title                text not null,
+  description          text,
+  category             text not null default 'diger'
+                         check (category in ('gezi','yemek','aktivite','hayal','diger')),
+  emoji                text,
+  is_completed         boolean not null default false,
+  completed_at         timestamptz,
+  completed_photo_url  text,
+  target_date          date,
+  created_by           uuid not null default auth.uid()
+                         references auth.users(id) on delete cascade,
+  created_at           timestamptz not null default now()
+);
+
+create index if not exists bucket_list_created_by_idx on public.bucket_list (created_by);
+create index if not exists bucket_list_is_completed_idx on public.bucket_list (is_completed);
+create index if not exists bucket_list_category_idx on public.bucket_list (category);
+
+alter table public.bucket_list enable row level security;
+
+drop policy if exists "bucket_list_select" on public.bucket_list;
+create policy "bucket_list_select" on public.bucket_list
+  for select using (created_by in (select public.linked_user_ids()));
+
+drop policy if exists "bucket_list_insert" on public.bucket_list;
+create policy "bucket_list_insert" on public.bucket_list
+  for insert with check (created_by = auth.uid());
+
+drop policy if exists "bucket_list_update" on public.bucket_list;
+create policy "bucket_list_update" on public.bucket_list
+  for update using (created_by in (select public.linked_user_ids()))
+  with check (created_by in (select public.linked_user_ids()));
+
+drop policy if exists "bucket_list_delete" on public.bucket_list;
+create policy "bucket_list_delete" on public.bucket_list
+  for delete using (created_by in (select public.linked_user_ids()));
+
+alter publication supabase_realtime add table public.bucket_list;
+
+
+-- ====================================================================
 -- 9) PARTNER EŞLEŞTİRME (iki kullanıcı kaydolduktan SONRA çalıştır)
 -- ====================================================================
 -- Aşağıdaki kullanıcıların kayıtları geldikten sonra e-postalarını
