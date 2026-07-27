@@ -25,6 +25,7 @@ import { useMemoryStore } from "@/store/memoryStore";
 import { useOzelGunStore } from "@/store/ozelGunStore";
 import { useEmotionStore } from "@/store/emotionStore";
 import { useSurpriseStore } from "@/store/surpriseStore";
+import { useMoodStore } from "@/store/moodStore";
 import { useStreakStore } from "@/store/streakStore";
 import { usePalet } from "@/store/useThemeStore";
 
@@ -38,12 +39,14 @@ export default function TabsLayout() {
   const fetchMessages = useChatStore((s) => s.fetchMessages);
   const fetchOzelGunler = useOzelGunStore((s) => s.fetchOzelGunler);
   const yukleStreak = useStreakStore((s) => s.yukle);
+  const yukleMood = useMoodStore((s) => s.yukle);
   const subscribeEvents = useCalendarStore((s) => s.subscribeRealtime);
   const subscribeSurprises = useSurpriseStore((s) => s.subscribeRealtime);
   const subscribeEmotions = useEmotionStore((s) => s.subscribeRealtime);
   const subscribeReasons = useLoveReasonStore((s) => s.subscribeRealtime);
   const subscribeOzelGunler = useOzelGunStore((s) => s.subscribeRealtime);
   const subscribeStreak = useStreakStore((s) => s.subscribeRealtime);
+  const subscribeMood = useMoodStore((s) => s.subscribeRealtime);
 
   // Giriş sonrası uygulama açılınca bulut verisini bir kez çek.
   // Böylece hem ana ekran kartları hem ilgili sekmeler aynı veriyi kullanır.
@@ -56,6 +59,7 @@ export default function TabsLayout() {
     fetchMessages();
     fetchOzelGunler();
     yukleStreak();
+    yukleMood();
   }, [
     fetchEvents,
     fetchMemories,
@@ -65,6 +69,7 @@ export default function TabsLayout() {
     fetchMessages,
     fetchOzelGunler,
     yukleStreak,
+    yukleMood,
   ]);
 
   // Realtime: partner etkinlik/sürpriz/sevme sebebi/özel gün eklediğinde ekran anında güncellenir.
@@ -75,6 +80,7 @@ export default function TabsLayout() {
     const unsubReasons = subscribeReasons();
     const unsubOzelGunler = subscribeOzelGunler();
     const unsubStreak = subscribeStreak();
+    const unsubMood = subscribeMood();
     return () => {
       unsubEvents();
       unsubSurprises();
@@ -82,6 +88,7 @@ export default function TabsLayout() {
       unsubReasons();
       unsubOzelGunler();
       unsubStreak();
+      unsubMood();
     };
   }, [
     subscribeEvents,
@@ -90,6 +97,7 @@ export default function TabsLayout() {
     subscribeOzelGunler,
     subscribeEmotions,
     subscribeStreak,
+    subscribeMood,
   ]);
 
   return (

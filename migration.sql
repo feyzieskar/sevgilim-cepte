@@ -544,6 +544,47 @@ create policy "media_delete" on storage.objects
 
 
 -- ====================================================================
+-- 8d) moods — Günlük ruh hali takibi
+-- ====================================================================
+create table if not exists public.moods (
+  id          uuid primary key default gen_random_uuid(),
+  mood        text not null
+                check (mood in ('mutlu','keyifli','normal','yorgun','uzgun','stresli')),
+  emoji       text,
+  note        text,
+  mood_date   date not null default current_date,
+  created_by  uuid not null default auth.uid()
+                references auth.users(id) on delete cascade,
+  created_at  timestamptz not null default now(),
+  unique (created_by, mood_date)
+);
+
+create index if not exists moods_mood_date_idx on public.moods (mood_date desc);
+create index if not exists moods_created_by_idx on public.moods (created_by);
+
+alter table public.moods enable row level security;
+
+drop policy if exists "moods_select" on public.moods;
+create policy "moods_select" on public.moods
+  for select using (created_by in (select public.linked_user_ids()));
+
+drop policy if exists "moods_insert" on public.moods;
+create policy "moods_insert" on public.moods
+  for insert with check (created_by = auth.uid());
+
+drop policy if exists "moods_update" on public.moods;
+create policy "moods_update" on public.moods
+  for update using (created_by = auth.uid())
+  with check (created_by = auth.uid());
+
+drop policy if exists "moods_delete" on public.moods;
+create policy "moods_delete" on public.moods
+  for delete using (created_by = auth.uid());
+
+alter publication supabase_realtime add table public.moods;
+
+
+-- ====================================================================
 -- 9) PARTNER EŞLEŞTİRME (iki kullanıcı kaydolduktan SONRA çalıştır)
 -- ====================================================================
 -- Aşağıdaki kullanıcıların kayıtları geldikten sonra e-postalarını

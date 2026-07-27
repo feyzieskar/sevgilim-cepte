@@ -5,8 +5,9 @@
 //   1) Bugünkü Etkinlik
 //   2) Sonraki Özel Gün (geri sayım)
 //   3) Günün Mesajı
-//   4) Feyzi AI'a Sor
-//   5) Bugün Seni Sevme Sebebim
+//   4) Ruh Hali
+//   5) Feyzi AI'a Sor
+//   6) Bugün Seni Sevme Sebebim
 // Tüm kartlar şimdilik statik/mock veriyle çalışır.
 // ====================================================================
 
@@ -17,6 +18,7 @@ import { EtkinlikKarti } from "@/components/cards/EtkinlikKarti";
 import { FeyziAiKarti } from "@/components/cards/FeyziAiKarti";
 import { GununMesajiKarti } from "@/components/cards/GununMesajiKarti";
 import { OzelGunKarti } from "@/components/cards/OzelGunKarti";
+import { RuhHaliKarti } from "@/components/cards/RuhHaliKarti";
 import { SevmeSebebiKarti } from "@/components/cards/SevmeSebebiKarti";
 import { EkranBasligi } from "@/components/ui/EkranBasligi";
 import { useGoruntulenenAd } from "@/store/authStore";
@@ -55,6 +57,7 @@ export default function AnaEkran() {
           <EtkinlikKarti />
           <OzelGunKarti />
           <GununMesajiKarti />
+          <RuhHaliKarti />
           <FeyziAiKarti />
           <SevmeSebebiKarti />
         </View>
