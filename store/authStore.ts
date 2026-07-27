@@ -41,6 +41,8 @@ interface AuthState {
     displayName?: string
   ) => Promise<AuthSonuc>;
   signOut: () => Promise<void>;
+  changePassword: (yeniSifre: string) => Promise<AuthSonuc>;
+  updateDisplayName: (displayName: string) => Promise<AuthSonuc>;
 }
 
 // Supabase hata mesajlarını kullanıcı dostu Türkçe metne çevirir.
@@ -54,6 +56,10 @@ function hataCevir(mesaj: string): string {
     return "Bu e-posta zaten kayıtlı. Giriş yapmayı dene.";
   if (m.includes("password should be at least"))
     return "Şifre en az 6 karakter olmalı.";
+  if (m.includes("same as the old password"))
+    return "Yeni şifre eskisiyle aynı olamaz.";
+  if (m.includes("weak password") || m.includes("password is too weak"))
+    return "Şifre çok zayıf. Daha güçlü bir şifre seç.";
   if (m.includes("unable to validate email") || m.includes("invalid email"))
     return "Geçerli bir e-posta gir.";
   if (m.includes("network"))
@@ -128,6 +134,57 @@ export const useAuthStore = create<AuthState>((set) => ({
     await temizlePushToken();
     await supabase.auth.signOut();
     set({ session: null, user: null });
+  },
+
+  changePassword: async (yeniSifre) => {
+    if (yeniSifre.length < 6) {
+      return { basarili: false, hata: "Şifre en az 6 karakter olmalı." };
+    }
+
+    set({ loading: true });
+    const { error } = await supabase.auth.updateUser({ password: yeniSifre });
+    set({ loading: false });
+
+    if (error) return { basarili: false, hata: hataCevir(error.message) };
+    return { basarili: true };
+  },
+
+  updateDisplayName: async (displayName) => {
+    const temiz = displayName.trim();
+    if (temiz === "") {
+      return { basarili: false, hata: "Görünen ad boş olamaz." };
+    }
+
+    const userId = useAuthStore.getState().user?.id;
+    if (!userId) {
+      return { basarili: false, hata: "Oturum bulunamadı." };
+    }
+
+    set({ loading: true });
+
+    const { error: profilHata } = await supabase
+      .from("profiles")
+      .update({ display_name: temiz })
+      .eq("id", userId);
+
+    const { data, error: authHata } = await supabase.auth.updateUser({
+      data: { display_name: temiz },
+    });
+
+    set({ loading: false });
+
+    if (profilHata || authHata) {
+      return {
+        basarili: false,
+        hata: hataCevir(profilHata?.message ?? authHata?.message ?? "Kaydedilemedi"),
+      };
+    }
+
+    if (data.user) {
+      set({ user: data.user });
+    }
+
+    return { basarili: true };
   },
 }));
 

@@ -1,69 +1,316 @@
 // ====================================================================
-// PROFİL EKRANI  (placeholder — partner bilgileri ileride eklenecek)
+// PROFİL EKRANI — hesap, partner ve güvenlik ayarları
 // ====================================================================
 
-import { User } from "lucide-react-native";
-import { Text, View } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
+import { Heart, User } from "lucide-react-native";
+import { useEffect, useState } from "react";
+import {
+  ActivityIndicator,
+  Alert,
+  Pressable,
+  RefreshControl,
+  ScrollView,
+  Text,
+  TextInput,
+  View,
+} from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { EkranBasligi } from "@/components/ui/EkranBasligi";
 import { RADIUS, SHADOWS } from "@/constants/theme";
 import { useAuthStore, useGoruntulenenAd } from "@/store/authStore";
+import { useProfileStore } from "@/store/profileStore";
 import { usePalet } from "@/store/useThemeStore";
 
 export default function ProfilEkrani() {
   const palet = usePalet();
   const ad = useGoruntulenenAd();
   const eposta = useAuthStore((s) => s.user?.email ?? "");
+  const authLoading = useAuthStore((s) => s.loading);
+  const updateDisplayName = useAuthStore((s) => s.updateDisplayName);
+  const changePassword = useAuthStore((s) => s.changePassword);
+
+  const partnerProfil = useProfileStore((s) => s.partnerProfil);
+  const loading = useProfileStore((s) => s.loading);
+  const yuklendiMi = useProfileStore((s) => s.yuklendiMi);
+  const fetchProfiller = useProfileStore((s) => s.fetchProfiller);
+
+  const [gorunenAd, setGorunenAd] = useState(ad);
+  const [yeniSifre, setYeniSifre] = useState("");
+  const [sifreTekrar, setSifreTekrar] = useState("");
+
+  useEffect(() => {
+    if (!yuklendiMi) void fetchProfiller();
+  }, [yuklendiMi, fetchProfiller]);
+
+  useEffect(() => {
+    setGorunenAd(ad);
+  }, [ad]);
+
+  const adKaydet = async () => {
+    const sonuc = await updateDisplayName(gorunenAd);
+    if (sonuc.basarili) {
+      Alert.alert("Kaydedildi", "Görünen adın güncellendi.");
+      void fetchProfiller();
+    } else {
+      Alert.alert("Olmadı", sonuc.hata ?? "Ad güncellenemedi.");
+    }
+  };
+
+  const sifreDegistir = async () => {
+    if (yeniSifre.length < 6) {
+      Alert.alert("Eksik bilgi", "Yeni şifre en az 6 karakter olmalı.");
+      return;
+    }
+    if (yeniSifre !== sifreTekrar) {
+      Alert.alert("Eşleşmiyor", "Yeni şifreler birbiriyle aynı değil.");
+      return;
+    }
+
+    const sonuc = await changePassword(yeniSifre);
+    if (sonuc.basarili) {
+      setYeniSifre("");
+      setSifreTekrar("");
+      Alert.alert("Tamam", "Şifren güncellendi.");
+    } else {
+      Alert.alert("Olmadı", sonuc.hata ?? "Şifre güncellenemedi.");
+    }
+  };
 
   return (
     <SafeAreaView
       edges={["top"]}
       style={{ flex: 1, backgroundColor: palet.arkaplan }}
     >
-      <View className="px-5 pt-2">
+      <ScrollView
+        contentContainerStyle={{ padding: 20, paddingBottom: 32 }}
+        showsVerticalScrollIndicator={false}
+        keyboardShouldPersistTaps="handled"
+        refreshControl={
+          <RefreshControl
+            refreshing={loading && yuklendiMi}
+            onRefresh={fetchProfiller}
+            tintColor={palet.primary}
+            colors={[palet.primary]}
+          />
+        }
+      >
         <EkranBasligi
           baslik="Profil"
-          altBaslik="Sen ve partnerin 👤"
+          altBaslik="Hesabın ve partnerin 👤"
           geriDugmesi
         />
-      </View>
 
-      <View className="flex-1 px-5 pb-8 pt-4">
-        <View
-          className="items-center rounded-3xl p-6"
-          style={{
-            backgroundColor: palet.yuzey,
-            borderRadius: RADIUS.lg,
-            ...SHADOWS.yumusak,
-          }}
-        >
+        {/* Benim profilim */}
+        <ProfilKarti baslik="Benim Profilim">
+          <ProfilAvatar ikon={User} />
+          <Text className="mt-3 text-sm font-semibold" style={{ color: palet.metinIkincil }}>
+            Görünen ad
+          </Text>
+          <TextInput
+            value={gorunenAd}
+            onChangeText={setGorunenAd}
+            placeholder="Adın"
+            placeholderTextColor={palet.metinIkincil}
+            style={inputStil(palet)}
+          />
+          <Text className="mt-3 text-sm font-semibold" style={{ color: palet.metinIkincil }}>
+            E-posta
+          </Text>
           <View
-            className="h-20 w-20 items-center justify-center rounded-full"
-            style={{ backgroundColor: `${palet.primary}18` }}
+            className="mt-1 rounded-xl px-4 py-3"
+            style={{ backgroundColor: palet.yuzeyIkincil }}
           >
-            <User size={38} color={palet.primary} strokeWidth={2.2} />
+            <Text style={{ color: palet.metin }}>{eposta || "—"}</Text>
           </View>
-          <Text
-            className="mt-4 text-xl font-bold"
-            style={{ color: palet.metin }}
-          >
-            {ad || "Sevgilim"}
+          <KaydetDugmesi
+            etiket="Adı Kaydet"
+            yukleniyor={authLoading}
+            onPress={adKaydet}
+            disabled={gorunenAd.trim() === ""}
+          />
+        </ProfilKarti>
+
+        {/* Partner */}
+        <ProfilKarti baslik="Partnerim">
+          {loading && !yuklendiMi ? (
+            <ActivityIndicator color={palet.primary} />
+          ) : partnerProfil ? (
+            <>
+              <ProfilAvatar ikon={Heart} vurgu />
+              <Text
+                className="mt-4 text-xl font-bold"
+                style={{ color: palet.metin }}
+              >
+                {partnerProfil.displayName}
+              </Text>
+              <View
+                className="mt-3 flex-row items-center rounded-full px-3 py-1.5"
+                style={{ backgroundColor: "#22C55E22" }}
+              >
+                <Ionicons name="heart" size={14} color="#22C55E" />
+                <Text
+                  className="ml-1.5 text-sm font-semibold"
+                  style={{ color: "#22C55E" }}
+                >
+                  Eşleşmiş 💕
+                </Text>
+              </View>
+              <Text
+                className="mt-4 text-center leading-6"
+                style={{ color: palet.metinIkincil }}
+              >
+                Birlikte anılar, streak, ruh hali ve daha fazlasını paylaşıyorsunuz.
+              </Text>
+            </>
+          ) : (
+            <View className="items-center py-4">
+              <ProfilAvatar ikon={Heart} soluk />
+              <Text
+                className="mt-4 text-center font-semibold"
+                style={{ color: palet.metin }}
+              >
+                Henüz partner eşleşmesi yok
+              </Text>
+              <Text
+                className="mt-2 text-center leading-6"
+                style={{ color: palet.metinIkincil }}
+              >
+                İki hesap Supabase üzerinde eşleştirildiğinde partnerin burada görünür.
+              </Text>
+            </View>
+          )}
+        </ProfilKarti>
+
+        {/* Şifre */}
+        <ProfilKarti baslik="Güvenlik">
+          <Text className="text-sm font-semibold" style={{ color: palet.metinIkincil }}>
+            Yeni şifre
           </Text>
-          {eposta ? (
-            <Text className="mt-1" style={{ color: palet.metinIkincil }}>
-              {eposta}
-            </Text>
-          ) : null}
-          <Text
-            className="mt-5 text-center leading-6"
-            style={{ color: palet.metinIkincil }}
-          >
-            Partner eşleştirme ve profil düzenleme özellikleri yakında burada
-            olacak.
+          <TextInput
+            value={yeniSifre}
+            onChangeText={setYeniSifre}
+            placeholder="En az 6 karakter"
+            placeholderTextColor={palet.metinIkincil}
+            secureTextEntry
+            autoCapitalize="none"
+            style={inputStil(palet)}
+          />
+          <Text className="mt-3 text-sm font-semibold" style={{ color: palet.metinIkincil }}>
+            Yeni şifre (tekrar)
           </Text>
-        </View>
-      </View>
+          <TextInput
+            value={sifreTekrar}
+            onChangeText={setSifreTekrar}
+            placeholder="Şifreyi tekrar yaz"
+            placeholderTextColor={palet.metinIkincil}
+            secureTextEntry
+            autoCapitalize="none"
+            style={inputStil(palet)}
+          />
+          <KaydetDugmesi
+            etiket="Şifreyi Güncelle"
+            yukleniyor={authLoading}
+            onPress={sifreDegistir}
+            disabled={yeniSifre === "" || sifreTekrar === ""}
+          />
+        </ProfilKarti>
+      </ScrollView>
     </SafeAreaView>
   );
+}
+
+function ProfilKarti({
+  baslik,
+  children,
+}: {
+  baslik: string;
+  children: React.ReactNode;
+}) {
+  const palet = usePalet();
+
+  return (
+    <View
+      className="mt-4 items-center rounded-2xl p-5"
+      style={{
+        backgroundColor: palet.yuzey,
+        borderRadius: RADIUS.lg,
+        ...SHADOWS.yumusak,
+      }}
+    >
+      <Text className="mb-4 self-start text-lg font-bold" style={{ color: palet.metin }}>
+        {baslik}
+      </Text>
+      <View className="w-full items-center">{children}</View>
+    </View>
+  );
+}
+
+function ProfilAvatar({
+  ikon: Ikon,
+  vurgu,
+  soluk,
+}: {
+  ikon: typeof User;
+  vurgu?: boolean;
+  soluk?: boolean;
+}) {
+  const palet = usePalet();
+  const renk = vurgu ? "#E14D80" : palet.primary;
+  const arkaplan = soluk ? `${palet.metinIkincil}18` : `${renk}18`;
+
+  return (
+    <View
+      className="h-20 w-20 items-center justify-center rounded-full"
+      style={{ backgroundColor: arkaplan }}
+    >
+      <Ikon size={38} color={soluk ? palet.metinIkincil : renk} strokeWidth={2.2} />
+    </View>
+  );
+}
+
+function KaydetDugmesi({
+  etiket,
+  yukleniyor,
+  onPress,
+  disabled,
+}: {
+  etiket: string;
+  yukleniyor: boolean;
+  onPress: () => void;
+  disabled?: boolean;
+}) {
+  const palet = usePalet();
+
+  return (
+    <Pressable
+      onPress={onPress}
+      disabled={disabled || yukleniyor}
+      className="mt-4 w-full items-center rounded-xl py-3.5"
+      style={{
+        backgroundColor: disabled ? palet.kenarlik : palet.primary,
+        opacity: yukleniyor ? 0.8 : 1,
+      }}
+    >
+      {yukleniyor ? (
+        <ActivityIndicator color="#FFFFFF" />
+      ) : (
+        <Text className="font-bold text-white">{etiket}</Text>
+      )}
+    </Pressable>
+  );
+}
+
+function inputStil(palet: ReturnType<typeof usePalet>) {
+  return {
+    marginTop: 6,
+    backgroundColor: palet.yuzeyIkincil,
+    borderRadius: RADIUS.md,
+    color: palet.metin,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    fontSize: 16,
+    width: "100%" as const,
+  };
 }
