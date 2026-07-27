@@ -190,7 +190,7 @@ export const useSurpriseStore = create<SurpriseState>((set, get) => ({
     void sendPushToPartner(
       "Sana bir sürpriz var 🎁",
       "Sevgilin senin için yeni bir sürpriz sakladı 💕",
-      { screen: "surprizler" }
+      { screen: "duygular" }
     );
 
     return yeni;

@@ -2,7 +2,7 @@
 // ALT TAB BAR YERLEŞİMİ
 // ====================================================================
 // 5 sekmeli alt navigasyon:
-//   🏠 Bugün Biz | 📅 Takvim | 📸 Anılar | 💬 Feyzi AI | 🎁 Sürprizler
+//   🏠 Bugün Biz | 📅 Takvim | 📸 Anılar | 💬 Feyzi AI | 💕 Duygular
 // Sekme ikonları @expo/vector-icons (Ionicons) ile çizilir.
 // Renkler aktif tema paletine göre belirlenir.
 // ====================================================================
@@ -16,6 +16,7 @@ import { useChatStore } from "@/store/chatStore";
 import { useLoveReasonStore } from "@/store/loveReasonStore";
 import { useMemoryStore } from "@/store/memoryStore";
 import { useOzelGunStore } from "@/store/ozelGunStore";
+import { useEmotionStore } from "@/store/emotionStore";
 import { useSurpriseStore } from "@/store/surpriseStore";
 import { usePalet } from "@/store/useThemeStore";
 
@@ -24,11 +25,13 @@ export default function TabsLayout() {
   const fetchEvents = useCalendarStore((s) => s.fetchEvents);
   const fetchMemories = useMemoryStore((s) => s.fetchMemories);
   const fetchSurprises = useSurpriseStore((s) => s.fetchSurprises);
+  const fetchEmotions = useEmotionStore((s) => s.fetchEvents);
   const fetchReasons = useLoveReasonStore((s) => s.fetchReasons);
   const fetchMessages = useChatStore((s) => s.fetchMessages);
   const fetchOzelGunler = useOzelGunStore((s) => s.fetchOzelGunler);
   const subscribeEvents = useCalendarStore((s) => s.subscribeRealtime);
   const subscribeSurprises = useSurpriseStore((s) => s.subscribeRealtime);
+  const subscribeEmotions = useEmotionStore((s) => s.subscribeRealtime);
   const subscribeReasons = useLoveReasonStore((s) => s.subscribeRealtime);
   const subscribeOzelGunler = useOzelGunStore((s) => s.subscribeRealtime);
 
@@ -38,6 +41,7 @@ export default function TabsLayout() {
     fetchEvents();
     fetchMemories();
     fetchSurprises();
+    fetchEmotions();
     fetchReasons();
     fetchMessages();
     fetchOzelGunler();
@@ -45,6 +49,7 @@ export default function TabsLayout() {
     fetchEvents,
     fetchMemories,
     fetchSurprises,
+    fetchEmotions,
     fetchReasons,
     fetchMessages,
     fetchOzelGunler,
@@ -54,15 +59,17 @@ export default function TabsLayout() {
   useEffect(() => {
     const unsubEvents = subscribeEvents();
     const unsubSurprises = subscribeSurprises();
+    const unsubEmotions = subscribeEmotions();
     const unsubReasons = subscribeReasons();
     const unsubOzelGunler = subscribeOzelGunler();
     return () => {
       unsubEvents();
       unsubSurprises();
+      unsubEmotions();
       unsubReasons();
       unsubOzelGunler();
     };
-  }, [subscribeEvents, subscribeSurprises, subscribeReasons, subscribeOzelGunler]);
+  }, [subscribeEvents, subscribeSurprises, subscribeReasons, subscribeOzelGunler, subscribeEmotions]);
 
   return (
     <Tabs
@@ -120,12 +127,19 @@ export default function TabsLayout() {
         }}
       />
       <Tabs.Screen
+        name="duygular"
+        options={{
+          title: "Duygular",
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="heart" size={size} color={color} />
+          ),
+        }}
+      />
+      {/* Eski rota: push bildirimleri surprizler ekranına yönlenebilir */}
+      <Tabs.Screen
         name="surprizler"
         options={{
-          title: "Sürprizler",
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="gift" size={size} color={color} />
-          ),
+          href: null,
         }}
       />
     </Tabs>

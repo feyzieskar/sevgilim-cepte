@@ -26,13 +26,13 @@ import { usePalet, useThemeStore } from "@/store/useThemeStore";
 
 // Bildirim data.screen → expo-router yolu
 const EKRAN_YOLLARI: Record<string, Href> = {
-  surprizler: "/(tabs)/surprizler",
+  duygular: "/(tabs)/duygular",
+  surprizler: "/(tabs)/duygular",
   takvim: "/(tabs)/takvim",
   anilar: "/(tabs)/anilar",
   "feyzi-ai": "/(tabs)/feyzi-ai",
   index: "/(tabs)",
   bugun: "/(tabs)",
-  duygular: "/(tabs)", // ileride ayrı sekme olursa güncellenir
 };
 
 function bildirimeGoreYonlendir(

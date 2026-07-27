@@ -382,6 +382,44 @@ create policy "media_delete" on storage.objects
 
 
 -- ====================================================================
+-- 8a) emotion_events — Duygular sekmesi (açlık / sevgi istekleri)
+-- ====================================================================
+create table if not exists public.emotion_events (
+  id          uuid primary key default gen_random_uuid(),
+  type        text not null check (type in ('hungry','love')),
+  level       text,                                -- açlık seviyesi (hungry)
+  action      text,                                -- sevgi eylemi (love)
+  suggestion  text,                                -- yemek önerisi (hungry)
+  created_by  uuid not null default auth.uid()
+                references auth.users(id) on delete cascade,
+  created_at  timestamptz not null default now()
+);
+
+create index if not exists emotion_events_created_by_idx on public.emotion_events (created_by);
+create index if not exists emotion_events_type_idx on public.emotion_events (type);
+create index if not exists emotion_events_created_at_idx on public.emotion_events (created_at desc);
+
+alter table public.emotion_events enable row level security;
+
+drop policy if exists "emotion_events_select" on public.emotion_events;
+create policy "emotion_events_select" on public.emotion_events
+  for select using (created_by in (select public.linked_user_ids()));
+
+drop policy if exists "emotion_events_insert" on public.emotion_events;
+create policy "emotion_events_insert" on public.emotion_events
+  for insert with check (created_by = auth.uid());
+
+drop policy if exists "emotion_events_update" on public.emotion_events;
+create policy "emotion_events_update" on public.emotion_events
+  for update using (created_by in (select public.linked_user_ids()))
+  with check (created_by in (select public.linked_user_ids()));
+
+drop policy if exists "emotion_events_delete" on public.emotion_events;
+create policy "emotion_events_delete" on public.emotion_events
+  for delete using (created_by in (select public.linked_user_ids()));
+
+
+-- ====================================================================
 -- 8b) FAZ 3 — Uzaktan push: profiles.expo_push_token
 -- ====================================================================
 -- Her cihaz girişte Expo Push Token'ını buraya yazar; Edge Function
