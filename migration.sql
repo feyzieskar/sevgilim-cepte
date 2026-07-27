@@ -428,6 +428,122 @@ alter table public.profiles add column if not exists expo_push_token text;
 
 
 -- ====================================================================
+-- 8c) streak_photos + streaks — Günlük fotoğraf serisi (Streak)
+-- ====================================================================
+create table if not exists public.streak_photos (
+  id          uuid primary key default gen_random_uuid(),
+  photo_url   text not null,
+  caption     text,
+  sent_date   date not null default current_date,
+  created_by  uuid not null default auth.uid()
+                references auth.users(id) on delete cascade,
+  created_at  timestamptz not null default now()
+);
+
+create index if not exists streak_photos_sent_date_idx
+  on public.streak_photos (sent_date desc);
+create index if not exists streak_photos_created_by_idx
+  on public.streak_photos (created_by);
+create index if not exists streak_photos_sent_date_user_idx
+  on public.streak_photos (sent_date, created_by);
+
+alter table public.streak_photos enable row level security;
+
+drop policy if exists "streak_photos_select" on public.streak_photos;
+create policy "streak_photos_select" on public.streak_photos
+  for select using (created_by in (select public.linked_user_ids()));
+
+drop policy if exists "streak_photos_insert" on public.streak_photos;
+create policy "streak_photos_insert" on public.streak_photos
+  for insert with check (created_by = auth.uid());
+
+drop policy if exists "streak_photos_delete" on public.streak_photos;
+create policy "streak_photos_delete" on public.streak_photos
+  for delete using (created_by = auth.uid());
+
+-- Çift bazlı streak durumu (couple_key = küçük_uuid:büyük_uuid)
+create table if not exists public.streaks (
+  couple_key          text primary key,
+  current_streak      int not null default 0,
+  longest_streak      int not null default 0,
+  last_completed_date date,
+  updated_at          timestamptz not null default now()
+);
+
+alter table public.streaks enable row level security;
+
+drop policy if exists "streaks_select" on public.streaks;
+create policy "streaks_select" on public.streaks
+  for select using (
+    exists (
+      select 1
+      from unnest(string_to_array(couple_key, ':')) as uid
+      where uid::uuid in (select public.linked_user_ids())
+    )
+  );
+
+drop policy if exists "streaks_insert" on public.streaks;
+create policy "streaks_insert" on public.streaks
+  for insert with check (
+    exists (
+      select 1
+      from unnest(string_to_array(couple_key, ':')) as uid
+      where uid::uuid = auth.uid()
+    )
+  );
+
+drop policy if exists "streaks_update" on public.streaks;
+create policy "streaks_update" on public.streaks
+  for update using (
+    exists (
+      select 1
+      from unnest(string_to_array(couple_key, ':')) as uid
+      where uid::uuid in (select public.linked_user_ids())
+    )
+  )
+  with check (
+    exists (
+      select 1
+      from unnest(string_to_array(couple_key, ':')) as uid
+      where uid::uuid in (select public.linked_user_ids())
+    )
+  );
+
+-- Realtime: partner fotoğraf gönderince anında güncelle
+alter publication supabase_realtime add table public.streak_photos;
+alter publication supabase_realtime add table public.streaks;
+
+-- Storage: streak-photos bucket
+insert into storage.buckets (id, name, public)
+values ('streak-photos', 'streak-photos', true)
+on conflict (id) do nothing;
+
+drop policy if exists "media_insert" on storage.objects;
+create policy "media_insert" on storage.objects
+  for insert to authenticated
+  with check (
+    bucket_id in ('memory-photos','surprise-media','streak-photos')
+    and owner = auth.uid()
+  );
+
+drop policy if exists "media_update" on storage.objects;
+create policy "media_update" on storage.objects
+  for update to authenticated
+  using (
+    bucket_id in ('memory-photos','surprise-media','streak-photos')
+    and owner = auth.uid()
+  );
+
+drop policy if exists "media_delete" on storage.objects;
+create policy "media_delete" on storage.objects
+  for delete to authenticated
+  using (
+    bucket_id in ('memory-photos','surprise-media','streak-photos')
+    and owner = auth.uid()
+  );
+
+
+-- ====================================================================
 -- 9) PARTNER EŞLEŞTİRME (iki kullanıcı kaydolduktan SONRA çalıştır)
 -- ====================================================================
 -- Aşağıdaki kullanıcıların kayıtları geldikten sonra e-postalarını

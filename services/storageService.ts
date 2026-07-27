@@ -7,6 +7,7 @@
 // Kullanılan bucket'lar:
 //   - memory-photos  : anı fotoğrafları
 //   - surprise-media : sürpriz fotoğrafları
+//   - streak-photos  : günlük streak fotoğrafları
 //
 // React Native'de güvenilir yükleme için base64 -> ArrayBuffer dönüşümü
 // kullanılır (Blob yöntemi RN'de bazen 0 bayt yükler).
@@ -16,7 +17,7 @@ import { decode } from "base64-arraybuffer";
 
 import { supabase } from "@/lib/supabase";
 
-export type FotoBucket = "memory-photos" | "surprise-media";
+export type FotoBucket = "memory-photos" | "surprise-media" | "streak-photos";
 
 // Benzersiz dosya adı üretir
 function yeniDosyaAdi(uzanti: string): string {
