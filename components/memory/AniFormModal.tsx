@@ -51,12 +51,7 @@ interface AniFormModalProps {
   onKaydet: (veri: AniFormVerisi) => void | Promise<void>;
 }
 
-export function AniFormModal({
-  visible,
-  onClose,
-  duzenlenen,
-  onKaydet,
-}: AniFormModalProps) {
+export function AniFormModal({ visible, onClose, duzenlenen, onKaydet }: AniFormModalProps) {
   const palet = usePalet();
   const mod = useThemeStore((s) => s.mod);
 
@@ -150,8 +145,7 @@ export function AniFormModal({
         date,
         note: note.trim(),
         isFavorite: duzenlenen?.isFavorite ?? false,
-        locationName:
-          locationName.trim() === "" ? undefined : locationName.trim(),
+        locationName: locationName.trim() === "" ? undefined : locationName.trim(),
         latitude,
         longitude,
       });
@@ -354,9 +348,7 @@ export function AniFormModal({
                 {kaydediliyor ? (
                   <View className="flex-row items-center">
                     <ActivityIndicator size="small" color="#FFFFFF" />
-                    <Text className="ml-2 text-lg font-bold text-white">
-                      Yükleniyor…
-                    </Text>
+                    <Text className="ml-2 text-lg font-bold text-white">Yükleniyor…</Text>
                   </View>
                 ) : (
                   <Text className="text-lg font-bold text-white">

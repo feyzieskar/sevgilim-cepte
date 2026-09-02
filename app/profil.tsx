@@ -35,14 +35,50 @@ export default function ProfilEkrani() {
   const loading = useProfileStore((s) => s.loading);
   const yuklendiMi = useProfileStore((s) => s.yuklendiMi);
   const fetchProfiller = useProfileStore((s) => s.fetchProfiller);
+  const createPairingCode = useProfileStore((s) => s.createPairingCode);
+  const redeemPairingCode = useProfileStore((s) => s.redeemPairingCode);
 
   const [gorunenAd, setGorunenAd] = useState(ad);
   const [yeniSifre, setYeniSifre] = useState("");
   const [sifreTekrar, setSifreTekrar] = useState("");
+  const [uretilenKod, setUretilenKod] = useState<string | null>(null);
+  const [girilenKod, setGirilenKod] = useState("");
+  const [eslesmeYukleniyor, setEslesmeYukleniyor] = useState(false);
 
   useEffect(() => {
     if (!yuklendiMi) void fetchProfiller();
   }, [yuklendiMi, fetchProfiller]);
+
+  const kodUret = async () => {
+    setEslesmeYukleniyor(true);
+    const res = await createPairingCode();
+    setEslesmeYukleniyor(false);
+    if (res.basarili && res.kod) {
+      setUretilenKod(res.kod);
+      Alert.alert(
+        "Eşleşme Kodu 💕",
+        `Kodun: ${res.kod}\n\nBu kodu partnerine ilet. Kod 15 dakika boyunca geçerlidir.`
+      );
+    } else {
+      Alert.alert("Olmadı", res.hata ?? "Kod oluşturulamadı.");
+    }
+  };
+
+  const kodEsle = async () => {
+    if (girilenKod.trim().length !== 6) {
+      Alert.alert("Eksik bilgi", "Lütfen 6 haneli eşleşme kodunu gir.");
+      return;
+    }
+    setEslesmeYukleniyor(true);
+    const res = await redeemPairingCode(girilenKod);
+    setEslesmeYukleniyor(false);
+    if (res.basarili) {
+      setGirilenKod("");
+      Alert.alert("Harika! 💕", "Partnerinle başarıyla eşleştiniz!");
+    } else {
+      Alert.alert("Eşleşme Başarısız", res.hata ?? "Kod doğrulanamadı.");
+    }
+  };
 
   useEffect(() => {
     setGorunenAd(ad);
@@ -79,10 +115,7 @@ export default function ProfilEkrani() {
   };
 
   return (
-    <SafeAreaView
-      edges={["top"]}
-      style={{ flex: 1, backgroundColor: palet.arkaplan }}
-    >
+    <SafeAreaView edges={["top"]} style={{ flex: 1, backgroundColor: palet.arkaplan }}>
       <ScrollView
         contentContainerStyle={{ padding: 20, paddingBottom: 32 }}
         showsVerticalScrollIndicator={false}
@@ -96,11 +129,7 @@ export default function ProfilEkrani() {
           />
         }
       >
-        <EkranBasligi
-          baslik="Profil"
-          altBaslik="Hesabın ve partnerin 👤"
-          geriDugmesi
-        />
+        <EkranBasligi baslik="Profil" altBaslik="Hesabın ve partnerin 👤" geriDugmesi />
 
         {/* Benim profilim */}
         <ProfilKarti baslik="Benim Profilim">
@@ -139,10 +168,7 @@ export default function ProfilEkrani() {
           ) : partnerProfil ? (
             <>
               <ProfilAvatar ikon={Heart} vurgu />
-              <Text
-                className="mt-4 text-xl font-bold"
-                style={{ color: palet.metin }}
-              >
+              <Text className="mt-4 text-xl font-bold" style={{ color: palet.metin }}>
                 {partnerProfil.displayName}
               </Text>
               <View
@@ -150,35 +176,94 @@ export default function ProfilEkrani() {
                 style={{ backgroundColor: "#22C55E22" }}
               >
                 <Ionicons name="heart" size={14} color="#22C55E" />
-                <Text
-                  className="ml-1.5 text-sm font-semibold"
-                  style={{ color: "#22C55E" }}
-                >
+                <Text className="ml-1.5 text-sm font-semibold" style={{ color: "#22C55E" }}>
                   Eşleşmiş 💕
                 </Text>
               </View>
-              <Text
-                className="mt-4 text-center leading-6"
-                style={{ color: palet.metinIkincil }}
-              >
+              <Text className="mt-4 text-center leading-6" style={{ color: palet.metinIkincil }}>
                 Birlikte anılar, streak, ruh hali ve daha fazlasını paylaşıyorsunuz.
               </Text>
             </>
           ) : (
-            <View className="items-center py-4">
+            <View className="items-center py-2">
               <ProfilAvatar ikon={Heart} soluk />
-              <Text
-                className="mt-4 text-center font-semibold"
-                style={{ color: palet.metin }}
-              >
+              <Text className="mt-4 text-center font-semibold" style={{ color: palet.metin }}>
                 Henüz partner eşleşmesi yok
               </Text>
-              <Text
-                className="mt-2 text-center leading-6"
-                style={{ color: palet.metinIkincil }}
-              >
-                İki hesap Supabase üzerinde eşleştirildiğinde partnerin burada görünür.
+              <Text className="mt-2 text-center leading-6" style={{ color: palet.metinIkincil }}>
+                Partnerinle güvenli bir şekilde eşleşmek için kod oluştur veya partnerinin kodunu
+                gir.
               </Text>
+
+              {/* Kod Oluştur */}
+              {uretilenKod ? (
+                <View
+                  className="mt-4 w-full items-center rounded-xl p-4"
+                  style={{
+                    backgroundColor: `${palet.primary}15`,
+                    borderWidth: 1,
+                    borderColor: `${palet.primary}40`,
+                  }}
+                >
+                  <Text style={{ color: palet.metinIkincil, fontSize: 13 }}>
+                    Partnerine bu kodu ilet (15 dk geçerli):
+                  </Text>
+                  <Text
+                    className="mt-2 text-3xl font-extrabold tracking-widest"
+                    style={{ color: palet.primary }}
+                  >
+                    {uretilenKod}
+                  </Text>
+                </View>
+              ) : (
+                <View className="mt-4 w-full">
+                  <KaydetDugmesi
+                    etiket="Eşleşme Kodu Oluştur 🔐"
+                    yukleniyor={eslesmeYukleniyor}
+                    onPress={kodUret}
+                    disabled={eslesmeYukleniyor}
+                  />
+                </View>
+              )}
+
+              {/* Ayraç */}
+              <View className="my-4 w-full flex-row items-center">
+                <View className="h-px flex-1" style={{ backgroundColor: palet.kenarlik }} />
+                <Text className="mx-3 text-xs" style={{ color: palet.metinIkincil }}>
+                  veya kodu gir
+                </Text>
+                <View className="h-px flex-1" style={{ backgroundColor: palet.kenarlik }} />
+              </View>
+
+              {/* Kod Gir */}
+              <View className="w-full flex-row items-center gap-2">
+                <TextInput
+                  value={girilenKod}
+                  onChangeText={(t) => setGirilenKod(t.replace(/[^0-9]/g, "").slice(0, 6))}
+                  placeholder="6 haneli kod"
+                  placeholderTextColor={palet.metinIkincil}
+                  keyboardType="number-pad"
+                  maxLength={6}
+                  style={[
+                    inputStil(palet),
+                    { flex: 1, textAlign: "center", fontSize: 18, letterSpacing: 4 },
+                  ]}
+                />
+                <Pressable
+                  onPress={kodEsle}
+                  disabled={girilenKod.length !== 6 || eslesmeYukleniyor}
+                  style={{
+                    backgroundColor: girilenKod.length === 6 ? palet.primary : palet.kenarlik,
+                    borderRadius: RADIUS.md,
+                    paddingHorizontal: 16,
+                    paddingVertical: 12,
+                    justifyContent: "center",
+                    alignItems: "center",
+                  }}
+                >
+                  <Text style={{ color: "#FFFFFF", fontWeight: "700" }}>Eşleş</Text>
+                </Pressable>
+              </View>
             </View>
           )}
         </ProfilKarti>
@@ -221,13 +306,7 @@ export default function ProfilEkrani() {
   );
 }
 
-function ProfilKarti({
-  baslik,
-  children,
-}: {
-  baslik: string;
-  children: React.ReactNode;
-}) {
+function ProfilKarti({ baslik, children }: { baslik: string; children: React.ReactNode }) {
   const palet = usePalet();
 
   return (

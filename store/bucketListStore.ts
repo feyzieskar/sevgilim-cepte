@@ -57,10 +57,7 @@ interface BucketListState {
   addItem: (girdi: BucketGirdi) => Promise<BucketItem | null>;
   updateItem: (id: string, degisiklikler: Partial<BucketGirdi>) => Promise<void>;
   deleteItem: (id: string) => Promise<void>;
-  toggleComplete: (
-    id: string,
-    photoBase64?: string
-  ) => Promise<BucketItem | null>;
+  toggleComplete: (id: string, photoBase64?: string) => Promise<BucketItem | null>;
   subscribeRealtime: () => () => void;
 }
 
@@ -161,8 +158,7 @@ export const useBucketListStore = create<BucketListState>((set, get) => ({
       row.description = degisiklikler.description?.trim() || null;
     if (degisiklikler.category !== undefined) row.category = degisiklikler.category;
     if (degisiklikler.emoji !== undefined) row.emoji = degisiklikler.emoji;
-    if (degisiklikler.targetDate !== undefined)
-      row.target_date = degisiklikler.targetDate ?? null;
+    if (degisiklikler.targetDate !== undefined) row.target_date = degisiklikler.targetDate ?? null;
 
     if (Object.keys(row).length === 0) return;
 
@@ -173,9 +169,7 @@ export const useBucketListStore = create<BucketListState>((set, get) => ({
     }
 
     set((s) => ({
-      items: s.items.map((item) =>
-        item.id === id ? { ...item, ...degisiklikler } : item
-      ),
+      items: s.items.map((item) => (item.id === id ? { ...item, ...degisiklikler } : item)),
     }));
   },
 
@@ -206,7 +200,7 @@ export const useBucketListStore = create<BucketListState>((set, get) => ({
         is_completed: tamamlanacak,
         completed_at: tamamlanacak ? new Date().toISOString() : null,
         completed_photo_url: tamamlanacak
-          ? completedPhotoUrl ?? mevcut.completedPhotoUrl ?? null
+          ? (completedPhotoUrl ?? mevcut.completedPhotoUrl ?? null)
           : null,
       })
       .eq("id", id)
@@ -239,13 +233,9 @@ export const useBucketListStore = create<BucketListState>((set, get) => ({
 
     bucketKanali = supabase
       .channel("bucket-list-degisiklikleri")
-      .on(
-        "postgres_changes",
-        { event: "*", schema: "public", table: "bucket_list" },
-        () => {
-          void get().fetchItems();
-        }
-      )
+      .on("postgres_changes", { event: "*", schema: "public", table: "bucket_list" }, () => {
+        void get().fetchItems();
+      })
       .subscribe();
 
     return () => {

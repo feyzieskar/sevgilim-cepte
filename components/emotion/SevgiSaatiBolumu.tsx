@@ -3,22 +3,11 @@
 // ====================================================================
 
 import { useEffect, useRef, useState } from "react";
-import {
-  ActivityIndicator,
-  Alert,
-  Animated,
-  Pressable,
-  Text,
-  View,
-} from "react-native";
+import { ActivityIndicator, Alert, Animated, Pressable, Text, View } from "react-native";
 
 import { SonIsteklerListesi } from "@/components/emotion/SonIsteklerListesi";
 import { RADIUS, SHADOWS } from "@/constants/theme";
-import {
-  SEVGI_EYLEMLERI,
-  SevgiEylemi,
-  useEmotionStore,
-} from "@/store/emotionStore";
+import { SEVGI_EYLEMLERI, SevgiEylemi, useEmotionStore } from "@/store/emotionStore";
 import { usePalet } from "@/store/useThemeStore";
 
 export function SevgiSaatiBolumu() {

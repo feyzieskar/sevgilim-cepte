@@ -2,22 +2,22 @@
 // app.config.js
 // ====================================================================
 // app.json'daki statik yapılandırmayı alır ve üzerine .env'den gelen
-// gizli değerleri "extra" altına ekler. Böylece OPENAI_API_KEY gibi
-// anahtarlar koda gömülmeden ortam değişkeninden okunur.
+// genel ayarları "extra" altına ekler.
 //
-// Expo CLI, proje kökündeki .env dosyasını otomatik yükler; bu yüzden
-// process.env.OPENAI_API_KEY burada erişilebilir olur.
+// GÜVENLİK: API anahtarları (OpenAI, ElevenLabs, D-ID vb.) bu dosyada
+// yer almaz. Bu anahtarlar Supabase Edge Function ortam değişkenleri
+// olarak sunucu tarafında saklanır.
 //
-// NOT: "extra" değerleri uygulama paketine gömülür. Tek kişilik özel
-//      bir uygulama için bu kabul edilebilir; yine de anahtar
-//      uygulama içinde expo-secure-store'a yazılıp oradan okunur.
+// EXPO_PUBLIC_ önekli değişkenler uygulama paketine gömülür ve
+// yalnızca genel yapılandırma için kullanılmalıdır.
 // ====================================================================
 
 export default ({ config }) => ({
   ...config,
   extra: {
     ...(config.extra ?? {}),
-    openaiApiKey: process.env.OPENAI_API_KEY ?? null,
+    // Kayıt ekranını açıp kapamak için (varsayılan: kapalı)
+    allowSignup: process.env.EXPO_PUBLIC_ALLOW_SIGNUP === "true",
     // Expo Push Token için EAS projectId (eas init sonrası .env'ye yaz)
     eas: {
       ...((config.extra && config.extra.eas) || {}),

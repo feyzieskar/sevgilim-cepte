@@ -70,10 +70,7 @@ export function EkranBasligi({
             {baslik}
           </Text>
           {altBaslik ? (
-            <Text
-              className="mt-1 text-base"
-              style={{ color: palet.metinIkincil }}
-            >
+            <Text className="mt-1 text-base" style={{ color: palet.metinIkincil }}>
               {altBaslik}
             </Text>
           ) : null}
@@ -87,11 +84,7 @@ export function EkranBasligi({
             className="h-11 w-11 items-center justify-center rounded-full"
             style={{ backgroundColor: palet.yuzeyIkincil }}
           >
-            <Ionicons
-              name={mod === "dark" ? "sunny" : "moon"}
-              size={22}
-              color={palet.primary}
-            />
+            <Ionicons name={mod === "dark" ? "sunny" : "moon"} size={22} color={palet.primary} />
           </Pressable>
         ) : null}
 

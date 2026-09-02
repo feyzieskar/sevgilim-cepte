@@ -76,7 +76,10 @@ export default function AniDetayEkrani() {
 
   return (
     <View style={{ flex: 1, backgroundColor: palet.arkaplan }}>
-      <ScrollView contentContainerStyle={{ paddingBottom: 40 }} showsVerticalScrollIndicator={false}>
+      <ScrollView
+        contentContainerStyle={{ paddingBottom: 40 }}
+        showsVerticalScrollIndicator={false}
+      >
         {/* Büyük fotoğraf + üst butonlar */}
         <View>
           <Image
@@ -143,7 +146,12 @@ export default function AniDetayEkrani() {
           {konumVar ? (
             <View
               className="mt-3"
-              style={{ height: 180, borderRadius: RADIUS.md, overflow: "hidden", ...SHADOWS.yumusak }}
+              style={{
+                height: 180,
+                borderRadius: RADIUS.md,
+                overflow: "hidden",
+                ...SHADOWS.yumusak,
+              }}
             >
               <MapView
                 provider={PROVIDER_DEFAULT}

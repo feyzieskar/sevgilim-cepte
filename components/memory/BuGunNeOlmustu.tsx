@@ -52,28 +52,17 @@ export function BuGunNeOlmustu({ memories, onPress }: BuGunNeOlmustuProps) {
         <ScrollView horizontal showsHorizontalScrollIndicator={false}>
           <View className="flex-row gap-3">
             {eslesenler.map((m) => (
-              <Pressable
-                key={m.id}
-                onPress={() => onPress(m)}
-                style={{ width: 160 }}
-              >
+              <Pressable key={m.id} onPress={() => onPress(m)} style={{ width: 160 }}>
                 <Image
                   source={{ uri: m.photoUri }}
                   style={{ width: 160, height: 120, borderRadius: RADIUS.md }}
                   resizeMode="cover"
                 />
-                <Text
-                  className="mt-1 text-xs font-semibold"
-                  style={{ color: palet.secondary }}
-                >
+                <Text className="mt-1 text-xs font-semibold" style={{ color: palet.secondary }}>
                   {gunMetni(m.date)}
                 </Text>
                 {m.note ? (
-                  <Text
-                    className="text-sm"
-                    style={{ color: palet.metin }}
-                    numberOfLines={1}
-                  >
+                  <Text className="text-sm" style={{ color: palet.metin }} numberOfLines={1}>
                     {m.note}
                   </Text>
                 ) : null}

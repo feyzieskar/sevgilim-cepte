@@ -34,11 +34,7 @@ export function KategoriSecici({ secili, onChange }: KategoriSeciciProps) {
               borderColor: aktif ? k.renk : palet.kenarlik,
             }}
           >
-            <Ionicons
-              name={k.ikon}
-              size={16}
-              color={aktif ? "#FFFFFF" : k.renk}
-            />
+            <Ionicons name={k.ikon} size={16} color={aktif ? "#FFFFFF" : k.renk} />
             <Text
               className="ml-2 text-sm font-semibold"
               style={{ color: aktif ? "#FFFFFF" : palet.metin }}

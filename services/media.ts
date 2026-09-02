@@ -67,8 +67,7 @@ export async function mevcutKonum(): Promise<KonumBilgisi | null> {
     if (yerler.length > 0) {
       const y = yerler[0];
       // Şehir / ilçe / bölge gibi en anlamlı adı seç
-      locationName =
-        y.city || y.subregion || y.region || y.district || y.name || undefined;
+      locationName = y.city || y.subregion || y.region || y.district || y.name || undefined;
     }
   } catch {
     // Ters jeokodlama başarısız olursa sadece koordinatları kullan

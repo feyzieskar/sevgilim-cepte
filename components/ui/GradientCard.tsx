@@ -37,10 +37,7 @@ export function GradientCard({
   const palet = usePalet();
 
   const icerik = (
-    <View
-      className="p-5"
-      style={{ borderRadius: RADIUS.lg, overflow: "hidden" }}
-    >
+    <View className="p-5" style={{ borderRadius: RADIUS.lg, overflow: "hidden" }}>
       {children}
     </View>
   );
@@ -62,9 +59,7 @@ export function GradientCard({
       {icerik}
     </LinearGradient>
   ) : (
-    <View style={{ borderRadius: RADIUS.lg, backgroundColor: palet.yuzey }}>
-      {icerik}
-    </View>
+    <View style={{ borderRadius: RADIUS.lg, backgroundColor: palet.yuzey }}>{icerik}</View>
   );
 
   // onPress varsa basılabilir sarmalayıcı, yoksa düz View

@@ -15,12 +15,7 @@ interface OnayKartiProps {
   disabled?: boolean;
 }
 
-export function OnayKarti({
-  message,
-  onOnayla,
-  onReddet,
-  disabled,
-}: OnayKartiProps) {
+export function OnayKarti({ message, onOnayla, onReddet, disabled }: OnayKartiProps) {
   const palet = usePalet();
   const durum = message.onayDurum ?? "bekliyor";
   const bekliyor = durum === "bekliyor";

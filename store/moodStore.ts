@@ -50,11 +50,7 @@ interface MoodState {
   yukle: () => Promise<void>;
   fetchTodayMoods: () => Promise<void>;
   fetchMoodHistory: (days?: number) => Promise<void>;
-  setTodayMood: (
-    mood: MoodTipi,
-    emoji: string,
-    note?: string
-  ) => Promise<MoodKaydi | null>;
+  setTodayMood: (mood: MoodTipi, emoji: string, note?: string) => Promise<MoodKaydi | null>;
   subscribeRealtime: () => () => void;
 }
 
@@ -119,9 +115,7 @@ function gunlukOzetOlustur(
     .map(([date, kayitlar]) => ({
       date,
       benim: kayitlar.find((k) => k.createdBy === userId),
-      partnerin: partnerId
-        ? kayitlar.find((k) => k.createdBy === partnerId)
-        : undefined,
+      partnerin: partnerId ? kayitlar.find((k) => k.createdBy === partnerId) : undefined,
     }));
 }
 
@@ -251,14 +245,10 @@ export const useMoodStore = create<MoodState>((set, get) => ({
 
     moodKanali = supabase
       .channel("mood-degisiklikleri")
-      .on(
-        "postgres_changes",
-        { event: "*", schema: "public", table: "moods" },
-        () => {
-          void get().fetchTodayMoods();
-          void get().fetchMoodHistory(30);
-        }
-      )
+      .on("postgres_changes", { event: "*", schema: "public", table: "moods" }, () => {
+        void get().fetchTodayMoods();
+        void get().fetchMoodHistory(30);
+      })
       .subscribe();
 
     return () => {

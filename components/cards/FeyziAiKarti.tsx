@@ -15,16 +15,12 @@ export function FeyziAiKarti() {
   const router = useRouter();
 
   return (
-    <GradientCard
-      gradient
-      gradientTipi="sakin"
-      onPress={() => router.push("/(tabs)/feyzi-ai")}
-    >
+    <GradientCard gradient gradientTipi="sakin" onPress={() => router.push("/(tabs)/feyzi-ai")}>
       <View className="flex-row items-center justify-between">
         <View className="flex-1 pr-3">
-          <Text className="text-xl font-bold text-white">Feyzi AI'a Sor 💬</Text>
+          <Text className="text-xl font-bold text-white">{"Feyzi AI'a Sor 💬"}</Text>
           <Text className="mt-1 text-base text-white" style={{ opacity: 0.9 }}>
-            Aklındakini Feyzi'ye sor, seni dinlesin.
+            {"Aklındakini Feyzi'ye sor, seni dinlesin."}
           </Text>
         </View>
         <View

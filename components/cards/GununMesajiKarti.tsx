@@ -30,10 +30,7 @@ export function GununMesajiKarti() {
         </Text>
       </View>
 
-      <Text
-        className="mt-3 text-xl font-semibold leading-7"
-        style={{ color: palet.metin }}
-      >
+      <Text className="mt-3 text-xl font-semibold leading-7" style={{ color: palet.metin }}>
         “{mesaj}”
       </Text>
     </GradientCard>

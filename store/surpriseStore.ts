@@ -59,9 +59,7 @@ interface SurpriseState {
   openSurprise: (id: string) => Promise<void>;
   deleteSurprise: (id: string) => Promise<void>;
   getUnlockableSurprises: () => Surprise[];
-  openByType: (
-    tip: Extract<UnlockType, "sad" | "miss">
-  ) => Promise<Surprise | null>;
+  openByType: (tip: Extract<UnlockType, "sad" | "miss">) => Promise<Surprise | null>;
   acilabilirMi: (s: Surprise) => boolean;
   // Realtime aboneliği kurar; temizleme fonksiyonu döndürür
   subscribeRealtime: () => () => void;
@@ -70,14 +68,8 @@ interface SurpriseState {
 // İki ISO tarih arasındaki tam gün farkı (hedef - bugün).
 function kalanGun(hedefISO: string, bugun: Date = new Date()): number {
   const birGunMs = 1000 * 60 * 60 * 24;
-  const bugunBaslangic = new Date(
-    bugun.getFullYear(),
-    bugun.getMonth(),
-    bugun.getDate()
-  );
-  return Math.round(
-    (isoToDate(hedefISO).getTime() - bugunBaslangic.getTime()) / birGunMs
-  );
+  const bugunBaslangic = new Date(bugun.getFullYear(), bugun.getMonth(), bugun.getDate());
+  return Math.round((isoToDate(hedefISO).getTime() - bugunBaslangic.getTime()) / birGunMs);
 }
 
 // Takvimden bugünden sonraki en yakın 'tatil' etkinliğine kalan gün.
@@ -181,9 +173,7 @@ export const useSurpriseStore = create<SurpriseState>((set, get) => ({
     // Realtime kendi eklediğimizi de geri gönderebilir; tekrarı önlemek için
     // id kontrolüyle ekliyoruz.
     set((s) =>
-      s.surprises.some((x) => x.id === yeni.id)
-        ? s
-        : { surprises: [yeni, ...s.surprises] }
+      s.surprises.some((x) => x.id === yeni.id) ? s : { surprises: [yeni, ...s.surprises] }
     );
 
     // Partner'a uzaktan push (uygulama kapalıyken bile ulaşır)
@@ -231,9 +221,7 @@ export const useSurpriseStore = create<SurpriseState>((set, get) => ({
   },
 
   openByType: async (tip) => {
-    const hedef = get().surprises.find(
-      (s) => s.unlockType === tip && !s.isOpened
-    );
+    const hedef = get().surprises.find((s) => s.unlockType === tip && !s.isOpened);
     if (!hedef) return null;
     await get().openSurprise(hedef.id);
     return { ...hedef, isOpened: true, openedAt: new Date().toISOString() };
@@ -244,15 +232,11 @@ export const useSurpriseStore = create<SurpriseState>((set, get) => ({
 
     surprizKanali = supabase
       .channel("surprises-degisiklikleri")
-      .on(
-        "postgres_changes",
-        { event: "*", schema: "public", table: "surprises" },
-        (_payload) => {
-          // Listeyi tazele; uzaktan push gönderimi ekleyen tarafta yapılır
-          // (sendPushToPartner) — burada yerel bildirim yok.
-          get().fetchSurprises();
-        }
-      )
+      .on("postgres_changes", { event: "*", schema: "public", table: "surprises" }, (_payload) => {
+        // Listeyi tazele; uzaktan push gönderimi ekleyen tarafta yapılır
+        // (sendPushToPartner) — burada yerel bildirim yok.
+        get().fetchSurprises();
+      })
       .subscribe();
 
     return () => {

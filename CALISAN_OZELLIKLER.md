@@ -8,11 +8,11 @@
 
 ## 1. Genel bakış
 
-| Alan | Durum |
-|------|--------|
-| Teknoloji | Expo SDK 54, TypeScript, NativeWind, Zustand, Supabase |
-| Navigasyon | `expo-router` — auth + 5 sekme |
-| Backend | Supabase Auth, Postgres, Storage, Realtime, RLS |
+| Alan            | Durum                                                      |
+| --------------- | ---------------------------------------------------------- |
+| Teknoloji       | Expo SDK 54, TypeScript, NativeWind, Zustand, Supabase     |
+| Navigasyon      | `expo-router` — auth + 5 sekme                             |
+| Backend         | Supabase Auth, Postgres, Storage, Realtime, RLS            |
 | Hedef kullanıcı | 2 kişi (sen + sevgilin), partner bağlantısı ile ortak veri |
 
 Uygulama açılınca oturum kontrol edilir; giriş yoksa login ekranı, varsa ana sekmeler açılır. Giriş sonrası tüm bulut verisi bir kez çekilir ve Realtime abonelikleri kurulur.
@@ -38,12 +38,12 @@ Uygulama açılınca oturum kontrol edilir; giriş yoksa login ekranı, varsa an
 
 **Durum: çalışıyor**
 
-| Kart | Ne yapıyor |
-|------|------------|
-| Bugünkü Etkinlik | Takvim store’dan bugünün ilk etkinliğini gösterir |
-| Sonraki Özel Gün | En yakın tekrar eden özel güne geri sayım |
-| Günün Mesajı | Günlük seçilen romantik mesaj |
-| Feyzi AI’a Sor | Feyzi sekmesine kısayol |
+| Kart                     | Ne yapıyor                                                             |
+| ------------------------ | ---------------------------------------------------------------------- |
+| Bugünkü Etkinlik         | Takvim store’dan bugünün ilk etkinliğini gösterir                      |
+| Sonraki Özel Gün         | En yakın tekrar eden özel güne geri sayım                              |
+| Günün Mesajı             | Günlük seçilen romantik mesaj                                          |
+| Feyzi AI’a Sor           | Feyzi sekmesine kısayol                                                |
 | Bugün Seni Sevme Sebebim | Yerleşik + özel sebepler; kalple rastgele, kalemle özel sebep ekle/sil |
 
 Ek: gündüz/gece tema düğmesi, çıkış düğmesi, kişiselleştirilmiş selamlama.
@@ -92,16 +92,17 @@ Ek: gündüz/gece tema düğmesi, çıkış düğmesi, kişiselleştirilmiş sel
 
 ## 6. Anılar
 
-**Durum: çalışıyor (Supabase + Storage)**
+**Durum: çalışıyor (Supabase + Private Storage + Signed URLs)**
 
 - Anı ekle (not, tarih, konum, fotoğraf)
 - Galeri / kamera ile fotoğraf seçimi
-- Fotoğraf `memory-photos` bucket’ına yüklenir (public URL)
+- Fotoğraf `memory-photos` private bucket’ına yüklenir
+- Signed URL ile güvenli partner erişimi (1 saatlik geçerlilik)
 - Anı detay: görüntüle, düzenle, sil, favori
 - Harita / “bu gün ne olmuştu” bileşenleri
 - Pull-to-refresh
 
-**Veri:** `memories` tablosu + Storage `memory-photos`
+**Veri:** `memories` tablosu + Storage `memory-photos` (private)
 
 **İlgili dosyalar:** `store/memoryStore.ts`, `app/(tabs)/anilar.tsx`, `app/ani/[id].tsx`, `services/storageService.ts`, `services/media.ts`
 
@@ -109,28 +110,31 @@ Ek: gündüz/gece tema düğmesi, çıkış düğmesi, kişiselleştirilmiş sel
 
 ## 7. Sürprizler
 
-**Durum: çalışıyor (Supabase + Storage + Realtime + bildirim)**
+**Durum: çalışıyor (Supabase + Private Storage + Realtime + bildirim)**
 
 - Sürpriz ekle (başlık, mesaj, opsiyonel fotoğraf, açılma tipi)
 - Açılma tipleri: tarih, tatil öncesi, “kötü hissediyorum”, “seni özledim”
-- Fotoğraf `surprise-media` bucket’ına yüklenir
+- Fotoğraf `surprise-media` private bucket’ına yüklenir (signed URL ile gösterim)
 - Partner yeni sürpriz ekleyince:
   - Liste anında güncellenir (Realtime)
   - Yerel bildirim: “Sana bir sürpriz var 🎁”
 - Hızlı açma butonları (sad / miss)
 - Pull-to-refresh
 
-**Veri:** `surprises` tablosu + Storage `surprise-media`
+**Veri:** `surprises` tablosu + Storage `surprise-media` (private)
 
 **İlgili dosyalar:** `store/surpriseStore.ts`, `app/(tabs)/surprizler.tsx`, `components/surprise/*`, `services/notifications.ts`
 
 ---
 
-## 8. Feyzi AI (sohbet)
+## 8. Feyzi AI (sohbet + araç çağırma)
 
-**Durum: çalışıyor (kişisel bulut geçmişi)**
+**Durum: çalışıyor (Supabase Edge Function + GPT-4o)**
 
-- Metin sohbeti (OpenAI — `.env` içinde `OPENAI_API_KEY` gerekir)
+- Metin sohbeti: OpenAI GPT-4o (Supabase `feyzi-chat` Edge Function üzerinden proxy)
+- **Güvenlik:** API anahtarı sunucuda saklanır, istemci paketine gömülmez
+- **Araç çağırma (Function Calling):** Takvime etkinlik, özel gün ve sevme sebebi ekleme
+- Yazma işlemlerinden önce onay kartı gösterilir
 - Modlar: Normal, Moral, Plan, Anı
 - Anı modunda son anılardan bağlam üretilir
 - Mesaj geçmişi Supabase’de **kişisel** saklanır (partner göremez)
@@ -140,9 +144,7 @@ Ek: gündüz/gece tema düğmesi, çıkış düğmesi, kişiselleştirilmiş sel
 
 **Veri:** `chat_messages` tablosu (RLS: sadece `user_id = auth.uid()`)
 
-**İlgili dosyalar:** `store/chatStore.ts`, `app/(tabs)/feyzi-ai.tsx`, `services/feyziService.ts`
-
-> Sesli / video (ElevenLabs, D-ID) henüz aktif değil; anahtar yerleri `.env.example`’da hazır.
+**İlgili dosyalar:** `store/chatStore.ts`, `app/(tabs)/feyzi-ai.tsx`, `services/feyziService.ts`, `supabase/functions/feyzi-chat/index.ts`
 
 ---
 
@@ -176,22 +178,22 @@ Ek: gündüz/gece tema düğmesi, çıkış düğmesi, kişiselleştirilmiş sel
 
 ## 11. Supabase veri modeli
 
-| Tablo | Paylaşım | Realtime |
-|-------|----------|----------|
-| `profiles` | Ben + partner | — |
-| `events` | Ortak | Evet |
-| `memories` | Ortak | Hayır (isteğe bağlı) |
-| `surprises` | Ortak | Evet |
-| `love_reasons` | Ortak | Evet |
-| `special_days` | Ortak | Evet |
-| `chat_messages` | Kişisel | Hayır |
+| Tablo           | Paylaşım      | Realtime             |
+| --------------- | ------------- | -------------------- |
+| `profiles`      | Ben + partner | —                    |
+| `events`        | Ortak         | Evet                 |
+| `memories`      | Ortak         | Hayır (isteğe bağlı) |
+| `surprises`     | Ortak         | Evet                 |
+| `love_reasons`  | Ortak         | Evet                 |
+| `special_days`  | Ortak         | Evet                 |
+| `chat_messages` | Kişisel       | Hayır                |
 
 **Storage bucket’ları**
 
-| Bucket | Amaç |
-|--------|------|
-| `memory-photos` | Anı fotoğrafları |
-| `surprise-media` | Sürpriz medyası |
+| Bucket           | Amaç             |
+| ---------------- | ---------------- |
+| `memory-photos`  | Anı fotoğrafları |
+| `surprise-media` | Sürpriz medyası  |
 
 **Güvenlik:** Tüm tablolarda RLS. Ortak veriler `linked_user_ids()` ile yalnızca bağlı çift arasında görünür. Partner bağlantısı `profiles.partner_id` üzerinden yapılır.
 
@@ -220,13 +222,13 @@ Bağlantı yoksa her kullanıcı yalnızca kendi satırlarını görür.
 
 `.env` (gitignore’da; örnek: `.env.example`):
 
-| Değişken | Gerekli mi | Amaç |
-|----------|------------|------|
-| `EXPO_PUBLIC_SUPABASE_URL` | Evet | Supabase proje URL |
-| `EXPO_PUBLIC_SUPABASE_ANON_KEY` | Evet | Anon / public key |
-| `OPENAI_API_KEY` | Feyzi için | GPT sohbet |
-| `EXPO_PUBLIC_ELEVENLABS_API_KEY` | Hayır (ileride) | Ses |
-| `EXPO_PUBLIC_DID_API_KEY` | Hayır (ileride) | Konuşan video |
+| Değişken                         | Gerekli mi      | Amaç               |
+| -------------------------------- | --------------- | ------------------ |
+| `EXPO_PUBLIC_SUPABASE_URL`       | Evet            | Supabase proje URL |
+| `EXPO_PUBLIC_SUPABASE_ANON_KEY`  | Evet            | Anon / public key  |
+| `OPENAI_API_KEY`                 | Feyzi için      | GPT sohbet         |
+| `EXPO_PUBLIC_ELEVENLABS_API_KEY` | Hayır (ileride) | Ses                |
+| `EXPO_PUBLIC_DID_API_KEY`        | Hayır (ileride) | Konuşan video      |
 
 ---
 
@@ -245,13 +247,13 @@ Telefonda Expo Go ile QR kodu okut. İlk kurulumda Supabase SQL Editor’da `mig
 
 ## 15. Otomatik doğrulama (27 Temmuz 2026)
 
-| Kontrol | Sonuç |
-|---------|--------|
-| `npm install --legacy-peer-deps` | Başarılı (~452 MB `node_modules`) |
-| `tsc --noEmit` | Başarılı (hata yok) |
-| Metro iOS bundle (`expo-router/entry`) | HTTP 200, ~13 MB bundle üretildi |
-| Expo simctl | Uyarı: Xcode `simctl` eksik/bozuk (cihazda Expo Go ile test edilebilir) |
-| `expo` sürümü | Küçük uyarı: 54.0.35 → beklenen ~54.0.36 |
+| Kontrol                                | Sonuç                                                                   |
+| -------------------------------------- | ----------------------------------------------------------------------- |
+| `npm install --legacy-peer-deps`       | Başarılı (~452 MB `node_modules`)                                       |
+| `tsc --noEmit`                         | Başarılı (hata yok)                                                     |
+| Metro iOS bundle (`expo-router/entry`) | HTTP 200, ~13 MB bundle üretildi                                        |
+| Expo simctl                            | Uyarı: Xcode `simctl` eksik/bozuk (cihazda Expo Go ile test edilebilir) |
+| `expo` sürümü                          | Küçük uyarı: 54.0.35 → beklenen ~54.0.36                                |
 
 ---
 
@@ -271,14 +273,14 @@ Telefonda Expo Go ile QR kodu okut. İlk kurulumda Supabase SQL Editor’da `mig
 
 ## 17. Bilinen sınırlar / sonraki adımlar
 
-| Konu | Not |
-|------|-----|
-| Offline cache | Çekilmiş veri bellekte; tam offline/queue henüz yok |
-| Partner UI | Eşleştirme şu an SQL ile; uygulama içi ekran yok |
-| Push (uzak) | Sürpriz bildirimi yerel; sunucu push token yok |
-| Sesli / video Feyzi | Anahtar yerleri var, entegrasyon bekliyor |
-| Anılar Realtime | Açılış/fetch + refresh ile senkron; canlı abonelik yok |
-| README | Hâlâ iskelet aşamasını anlatıyor; bu belge güncel kaynak |
+| Konu                | Not                                                                            |
+| ------------------- | ------------------------------------------------------------------------------ |
+| Offline cache       | Çekilmiş veri bellekte; tam offline/queue henüz yok                            |
+| Partner UI          | ✅ Profil ekranında 6 haneli güvenli eşleşme kodu ile uygulama içinden eşleşme |
+| Push (uzak)         | ✅ Expo Push API + Supabase Edge Function (`send-push`) ile entegre            |
+| Sesli / video Feyzi | Gelecek faz için planlandı                                                     |
+| Anılar Realtime     | Açılış/fetch + refresh ile senkron                                             |
+| Güvenlik            | ✅ OpenAI Edge Function proxy, private storage (signed URL), RLS               |
 
 ---
 

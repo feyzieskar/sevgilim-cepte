@@ -79,9 +79,7 @@ async function mesajKaydet(
   content: string,
   mode: FeyziMode
 ): Promise<void> {
-  const { error } = await supabase
-    .from("chat_messages")
-    .insert({ role, content, mode });
+  const { error } = await supabase.from("chat_messages").insert({ role, content, mode });
   if (error) console.warn("[chatStore] mesajKaydet hatası:", error.message);
 }
 
@@ -103,8 +101,7 @@ function hataMesaji(e: unknown): string {
   if (e instanceof FeyziError) {
     if (e.kod === "NO_KEY")
       return "API anahtarım eksik gibi 💭 (.env dosyana OPENAI_API_KEY ekler misin?)";
-    if (e.kod === "AG")
-      return "İnternete ulaşamadım sanki, bağlantını kontrol eder misin? 🌐";
+    if (e.kod === "AG") return "İnternete ulaşamadım sanki, bağlantını kontrol eder misin? 🌐";
   }
   return "Şu an cevap veremedim, birazdan tekrar dener misin canım? 💕";
 }
@@ -124,11 +121,7 @@ function bilgiMesajlari(bilgiler?: BilgiKarti[]): ChatMessage[] {
 /** FeyziYanit'ı sohbet mesajlarına dönüştürür; onay varsa state'e yazar. */
 function yanitiIsle(
   yanit: FeyziYanit,
-  set: (
-    partial:
-      | Partial<ChatState>
-      | ((s: ChatState) => Partial<ChatState>)
-  ) => void,
+  set: (partial: Partial<ChatState> | ((s: ChatState) => Partial<ChatState>)) => void,
   mod: FeyziMode
 ) {
   if (yanit.tur === "onay") {

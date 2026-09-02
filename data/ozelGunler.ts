@@ -24,11 +24,7 @@ export function sonrakiTarih(gun: OzelGun, bugun: Date = new Date()): Date {
   const yil = bugun.getFullYear();
   let hedef = new Date(yil, gun.ay - 1, gun.gun);
   // Saat farklarından etkilenmemek için bugünü gün başına çekiyoruz
-  const bugunBaslangic = new Date(
-    bugun.getFullYear(),
-    bugun.getMonth(),
-    bugun.getDate()
-  );
+  const bugunBaslangic = new Date(bugun.getFullYear(), bugun.getMonth(), bugun.getDate());
   if (hedef < bugunBaslangic) {
     hedef = new Date(yil + 1, gun.ay - 1, gun.gun);
   }
@@ -40,11 +36,7 @@ export function sonrakiTarih(gun: OzelGun, bugun: Date = new Date()): Date {
 // ---------------------------------------------------------------
 export function kalanGun(hedef: Date, bugun: Date = new Date()): number {
   const birGunMs = 1000 * 60 * 60 * 24;
-  const bugunBaslangic = new Date(
-    bugun.getFullYear(),
-    bugun.getMonth(),
-    bugun.getDate()
-  );
+  const bugunBaslangic = new Date(bugun.getFullYear(), bugun.getMonth(), bugun.getDate());
   return Math.round((hedef.getTime() - bugunBaslangic.getTime()) / birGunMs);
 }
 

@@ -58,9 +58,7 @@ function tetikZamani(event: CalendarEvent): Date {
 
 // Bir etkinlik için hatırlatıcı planlar.
 // Başarılıysa bildirim kimliğini, aksi halde null döner.
-export async function hatirlaticiPlanla(
-  event: CalendarEvent
-): Promise<string | null> {
+export async function hatirlaticiPlanla(event: CalendarEvent): Promise<string | null> {
   const izin = await bildirimIzniIste();
   if (!izin) return null;
 
@@ -73,9 +71,7 @@ export async function hatirlaticiPlanla(
   const id = await Notifications.scheduleNotificationAsync({
     content: {
       title: "Sevgilim Cepte 💕",
-      body: event.time
-        ? `${event.title} — saat ${event.time}`
-        : event.title,
+      body: event.time ? `${event.title} — saat ${event.time}` : event.title,
       sound: true,
     },
     trigger: {
@@ -90,10 +86,7 @@ export async function hatirlaticiPlanla(
 
 // Anında (şimdi) bir bildirim gösterir. Realtime ile gelen yeni sürpriz
 // gibi durumlarda kullanılır. İzin yoksa sessizce geçer.
-export async function bildirimGonderHemen(
-  title: string,
-  body: string
-): Promise<void> {
+export async function bildirimGonderHemen(title: string, body: string): Promise<void> {
   const izin = await bildirimIzniIste();
   if (!izin) return;
   await kanaliHazirla();

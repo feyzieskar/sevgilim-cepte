@@ -35,11 +35,7 @@ interface AuthState {
   // Açılışta bir kez çağrılır: kayıtlı session'ı yükler + dinleyici kurar
   initialize: () => Promise<void>;
   signIn: (email: string, password: string) => Promise<AuthSonuc>;
-  signUp: (
-    email: string,
-    password: string,
-    displayName?: string
-  ) => Promise<AuthSonuc>;
+  signUp: (email: string, password: string, displayName?: string) => Promise<AuthSonuc>;
   signOut: () => Promise<void>;
   changePassword: (yeniSifre: string) => Promise<AuthSonuc>;
   updateDisplayName: (displayName: string) => Promise<AuthSonuc>;
@@ -48,26 +44,21 @@ interface AuthState {
 // Supabase hata mesajlarını kullanıcı dostu Türkçe metne çevirir.
 function hataCevir(mesaj: string): string {
   const m = mesaj.toLowerCase();
-  if (m.includes("invalid login credentials"))
-    return "E-posta veya şifre hatalı.";
+  if (m.includes("invalid login credentials")) return "E-posta veya şifre hatalı.";
   if (m.includes("email not confirmed"))
     return "E-posta henüz onaylanmamış. Gelen kutunu kontrol et.";
-  if (m.includes("user already registered"))
-    return "Bu e-posta zaten kayıtlı. Giriş yapmayı dene.";
-  if (m.includes("password should be at least"))
-    return "Şifre en az 6 karakter olmalı.";
-  if (m.includes("same as the old password"))
-    return "Yeni şifre eskisiyle aynı olamaz.";
+  if (m.includes("user already registered")) return "Bu e-posta zaten kayıtlı. Giriş yapmayı dene.";
+  if (m.includes("password should be at least")) return "Şifre en az 6 karakter olmalı.";
+  if (m.includes("same as the old password")) return "Yeni şifre eskisiyle aynı olamaz.";
   if (m.includes("weak password") || m.includes("password is too weak"))
     return "Şifre çok zayıf. Daha güçlü bir şifre seç.";
   if (m.includes("unable to validate email") || m.includes("invalid email"))
     return "Geçerli bir e-posta gir.";
-  if (m.includes("network"))
-    return "İnternet bağlantını kontrol et.";
+  if (m.includes("network")) return "İnternet bağlantını kontrol et.";
   return mesaj;
 }
 
-export const useAuthStore = create<AuthState>((set) => ({
+export const useAuthStore = create<AuthState>((set, get) => ({
   session: null,
   user: null,
   initialized: false,
@@ -149,13 +140,13 @@ export const useAuthStore = create<AuthState>((set) => ({
     return { basarili: true };
   },
 
-  updateDisplayName: async (displayName) => {
+  updateDisplayName: async (displayName: string): Promise<AuthSonuc> => {
     const temiz = displayName.trim();
     if (temiz === "") {
       return { basarili: false, hata: "Görünen ad boş olamaz." };
     }
 
-    const userId = useAuthStore.getState().user?.id;
+    const userId = get().user?.id;
     if (!userId) {
       return { basarili: false, hata: "Oturum bulunamadı." };
     }

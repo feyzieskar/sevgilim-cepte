@@ -36,12 +36,7 @@ interface SurprizKartiProps {
   onDelete: (s: Surprise) => void;
 }
 
-export function SurprizKarti({
-  surprise,
-  acilabilir,
-  onOpen,
-  onDelete,
-}: SurprizKartiProps) {
+export function SurprizKarti({ surprise, acilabilir, onOpen, onDelete }: SurprizKartiProps) {
   const palet = usePalet();
   const tur = UNLOCK_TURLERI[surprise.unlockType];
 
@@ -59,7 +54,10 @@ export function SurprizKarti({
   const ac = () => {
     setAnimasyonda(true);
     // Kart hafifçe büyüyüp küçülür + bir an soluklaşır
-    opacity.value = withSequence(withTiming(0.4, { duration: 160 }), withTiming(1, { duration: 260 }));
+    opacity.value = withSequence(
+      withTiming(0.4, { duration: 160 }),
+      withTiming(1, { duration: 260 })
+    );
     scale.value = withSequence(
       withTiming(1.08, { duration: 160 }),
       withTiming(0.96, { duration: 120 }),

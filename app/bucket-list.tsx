@@ -19,12 +19,9 @@ import { BucketFormModal } from "@/components/bucket/BucketFormModal";
 import { BucketKarti } from "@/components/bucket/BucketKarti";
 import { BucketKutlama } from "@/components/bucket/BucketKutlama";
 import { EkranBasligi } from "@/components/ui/EkranBasligi";
-import {
-  BUCKET_KATEGORILERI,
-  BucketKategori,
-} from "@/data/bucketList";
+import { BUCKET_KATEGORILERI, BucketKategori } from "@/data/bucketList";
 import { bugunISO } from "@/constants/tarih";
-import { RADIUS, SHADOWS } from "@/constants/theme";
+import { SHADOWS } from "@/constants/theme";
 import { galeridenSec, kameradanCek } from "@/services/media";
 import { useAuthStore } from "@/store/authStore";
 import { useBucketListStore } from "@/store/bucketListStore";
@@ -61,10 +58,8 @@ export default function BucketListEkrani() {
 
   const filtrelenmis = useMemo(() => {
     return items.filter((item) => {
-      const gorunumUygun =
-        gorunum === "yapilacak" ? !item.isCompleted : item.isCompleted;
-      const kategoriUygun =
-        kategori === "tumu" || item.category === kategori;
+      const gorunumUygun = gorunum === "yapilacak" ? !item.isCompleted : item.isCompleted;
+      const kategoriUygun = kategori === "tumu" || item.category === kategori;
       return gorunumUygun && kategoriUygun;
     });
   }, [items, gorunum, kategori]);
@@ -158,10 +153,7 @@ export default function BucketListEkrani() {
   };
 
   return (
-    <SafeAreaView
-      edges={["top"]}
-      style={{ flex: 1, backgroundColor: palet.arkaplan }}
-    >
+    <SafeAreaView edges={["top"]} style={{ flex: 1, backgroundColor: palet.arkaplan }}>
       <ScrollView
         contentContainerStyle={{ padding: 20, paddingBottom: 110 }}
         showsVerticalScrollIndicator={false}
@@ -263,9 +255,7 @@ export default function BucketListEkrani() {
                 key={item.id}
                 item={item}
                 benimId={userId}
-                onToggle={() =>
-                  maddeToggle(item.id, item.title, item.isCompleted)
-                }
+                onToggle={() => maddeToggle(item.id, item.title, item.isCompleted)}
                 onDelete={() => maddeSil(item.id, item.title)}
               />
             ))}
@@ -277,9 +267,7 @@ export default function BucketListEkrani() {
           >
             <Text style={{ fontSize: 40 }}>✨</Text>
             <Text className="mt-3 font-bold" style={{ color: palet.metin }}>
-              {gorunum === "yapilacak"
-                ? "Henüz hayal eklenmemiş"
-                : "Henüz tamamlanan yok"}
+              {gorunum === "yapilacak" ? "Henüz hayal eklenmemiş" : "Henüz tamamlanan yok"}
             </Text>
             <Text className="mt-1" style={{ color: palet.metinIkincil }}>
               + ile ilk hayalinizi ekleyin
@@ -304,7 +292,9 @@ export default function BucketListEkrani() {
       <BucketFormModal
         visible={modalAcik}
         onClose={() => setModalAcik(false)}
-        onKaydet={addItem}
+        onKaydet={async (veri) => {
+          await addItem(veri);
+        }}
       />
 
       <BucketKutlama

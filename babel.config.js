@@ -8,10 +8,7 @@
 module.exports = function (api) {
   api.cache(true);
   return {
-    presets: [
-      ["babel-preset-expo", { jsxImportSource: "nativewind" }],
-      "nativewind/babel",
-    ],
+    presets: [["babel-preset-expo", { jsxImportSource: "nativewind" }], "nativewind/babel"],
     plugins: [
       // Reanimated kullanılınca bu satır mutlaka en sonda kalmalı:
       "react-native-worklets/plugin",

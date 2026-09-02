@@ -8,15 +8,20 @@
 //  - JWT zorunlu (verify_jwt)
 //  - Çağıran yalnızca kendi partner'ına gönderebilir
 //  - Push token service_role ile okunur
+//  - Girdi boyutu doğrulanır
 // ====================================================================
 
 import { createClient } from "npm:@supabase/supabase-js@2";
 
 const corsHeaders: Record<string, string> = {
   "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers":
-    "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
+
+// Input limits
+const MAX_TITLE_LENGTH = 100;
+const MAX_BODY_LENGTH = 500;
+const MAX_DATA_SIZE = 1024; // 1KB
 
 interface PushIstek {
   toUserId: string;
@@ -58,11 +63,29 @@ Deno.serve(async (req: Request) => {
     const govde = (await req.json()) as PushIstek;
     const { toUserId, title, body, data } = govde;
 
+    // Input validation
     if (!toUserId || !title || !body) {
-      return jsonYanit(
-        { error: "toUserId, title ve body zorunlu" },
-        400
-      );
+      return jsonYanit({ error: "toUserId, title ve body zorunlu" }, 400);
+    }
+
+    if (typeof toUserId !== "string" || toUserId.length > 100) {
+      return jsonYanit({ error: "Geçersiz toUserId" }, 400);
+    }
+
+    if (title.length > MAX_TITLE_LENGTH) {
+      return jsonYanit({ error: `title en fazla ${MAX_TITLE_LENGTH} karakter olabilir` }, 400);
+    }
+
+    if (body.length > MAX_BODY_LENGTH) {
+      return jsonYanit({ error: `body en fazla ${MAX_BODY_LENGTH} karakter olabilir` }, 400);
+    }
+
+    // Data payload size check
+    if (data) {
+      const dataSize = new TextEncoder().encode(JSON.stringify(data)).length;
+      if (dataSize > MAX_DATA_SIZE) {
+        return jsonYanit({ error: `data payload çok büyük (maks ${MAX_DATA_SIZE} byte)` }, 400);
+      }
     }
 
     // Service role: profil / token okuma (RLS bypass)
@@ -99,7 +122,7 @@ Deno.serve(async (req: Request) => {
       .maybeSingle();
 
     if (hedefHata) {
-      return jsonYanit({ error: hedefHata.message }, 500);
+      return jsonYanit({ error: "Hedef kullanıcı bilgisi okunamadı" }, 500);
     }
 
     const token = hedef?.expo_push_token as string | null | undefined;
@@ -118,8 +141,8 @@ Deno.serve(async (req: Request) => {
       body: JSON.stringify({
         to: token,
         sound: "default",
-        title,
-        body,
+        title: title.slice(0, MAX_TITLE_LENGTH),
+        body: body.slice(0, MAX_BODY_LENGTH),
         data: data ?? {},
       }),
     });
@@ -127,16 +150,13 @@ Deno.serve(async (req: Request) => {
     const expoSonuc = await expoYanit.json();
 
     if (!expoYanit.ok) {
-      return jsonYanit(
-        { error: "Expo Push API hatası", detail: expoSonuc },
-        502
-      );
+      return jsonYanit({ error: "Push bildirim servisi hatası" }, 502);
     }
 
     return jsonYanit({ ok: true, result: expoSonuc }, 200);
   } catch (e) {
-    const mesaj = e instanceof Error ? e.message : String(e);
-    return jsonYanit({ error: mesaj }, 500);
+    console.error("[send-push] Hata:", e instanceof Error ? e.message : e);
+    return jsonYanit({ error: "Beklenmeyen sunucu hatası" }, 500);
   }
 });
 

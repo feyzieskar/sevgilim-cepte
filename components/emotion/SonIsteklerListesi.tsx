@@ -5,12 +5,7 @@
 import { Text, View } from "react-native";
 
 import { RADIUS } from "@/constants/theme";
-import {
-  EmotionEvent,
-  emotionGecmisMetni,
-  EmotionType,
-  saatFormat,
-} from "@/store/emotionStore";
+import { EmotionEvent, emotionGecmisMetni, EmotionType, saatFormat } from "@/store/emotionStore";
 import { useAuthStore } from "@/store/authStore";
 import { usePalet } from "@/store/useThemeStore";
 

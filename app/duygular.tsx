@@ -11,10 +11,7 @@ import { useState } from "react";
 import { RefreshControl, ScrollView, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-import {
-  DuyguAltBolum,
-  DuyguSekmeleri,
-} from "@/components/emotion/DuyguSekmeleri";
+import { DuyguAltBolum, DuyguSekmeleri } from "@/components/emotion/DuyguSekmeleri";
 import { KarnimAciktiBolumu } from "@/components/emotion/KarnimAciktiBolumu";
 import { SevgiSaatiBolumu } from "@/components/emotion/SevgiSaatiBolumu";
 import { SurprizlerBolumu } from "@/components/emotion/SurprizlerBolumu";
