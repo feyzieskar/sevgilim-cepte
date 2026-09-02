@@ -148,10 +148,7 @@ async function coupleKeyOlustur(): Promise<string | null> {
 }
 
 /** Fotoğraf listesinden "ikisi de gönderdi" günlerini çıkarır. */
-export function tamamlananGunleriBul(
-  photos: StreakPhoto[],
-  userIds: string[]
-): string[] {
+export function tamamlananGunleriBul(photos: StreakPhoto[], userIds: string[]): string[] {
   if (userIds.length < 2) return [];
 
   const gunlereGore = new Map<string, Set<string>>();
@@ -214,10 +211,7 @@ export function enUzunStreakHesapla(tamamlananGunler: string[]): number {
   return enUzun;
 }
 
-function gunlukOzetOlustur(
-  photos: StreakPhoto[],
-  userIds: string[]
-): GunlukOzet[] {
+function gunlukOzetOlustur(photos: StreakPhoto[], userIds: string[]): GunlukOzet[] {
   const gunlereGore = new Map<string, StreakPhoto[]>();
 
   for (const p of photos) {
@@ -230,8 +224,7 @@ function gunlukOzetOlustur(
     .sort(([a], [b]) => b.localeCompare(a))
     .map(([date, gunFotolari]) => {
       const gonderenler = new Set(gunFotolari.map((f) => f.createdBy));
-      const tamamlandi =
-        userIds.length >= 2 && userIds.every((id) => gonderenler.has(id));
+      const tamamlandi = userIds.length >= 2 && userIds.every((id) => gonderenler.has(id));
       return { date, photos: gunFotolari, tamamlandi };
     });
 }
@@ -251,11 +244,7 @@ export const useStreakStore = create<StreakState>((set, get) => ({
     set({ loading: true });
     const partnerId = await partnerIdBul();
     set({ partnerId });
-    await Promise.all([
-      get().fetchTodayPhotos(),
-      get().fetchStreakHistory(),
-      get().fetchStreak(),
-    ]);
+    await Promise.all([get().fetchTodayPhotos(), get().fetchStreakHistory(), get().fetchStreak()]);
     await get().recalculateStreak();
     set({ loading: false, yuklendiMi: true });
   },
@@ -362,8 +351,7 @@ export const useStreakStore = create<StreakState>((set, get) => ({
       get().streak?.longestStreak ?? 0,
       currentStreak
     );
-    const lastCompletedDate =
-      tamamlanan.length > 0 ? tamamlanan[tamamlanan.length - 1] : null;
+    const lastCompletedDate = tamamlanan.length > 0 ? tamamlanan[tamamlanan.length - 1] : null;
 
     const { data: upserted, error: upsertHata } = await supabase
       .from("streaks")
@@ -381,10 +369,7 @@ export const useStreakStore = create<StreakState>((set, get) => ({
       .single();
 
     if (upsertHata) {
-      console.warn(
-        "[streakStore] recalculateStreak yazma hatası:",
-        upsertHata.message
-      );
+      console.warn("[streakStore] recalculateStreak yazma hatası:", upsertHata.message);
       return;
     }
 
@@ -445,22 +430,14 @@ export const useStreakStore = create<StreakState>((set, get) => ({
 
     streakKanali = supabase
       .channel("streak-degisiklikleri")
-      .on(
-        "postgres_changes",
-        { event: "*", schema: "public", table: "streak_photos" },
-        () => {
-          void get().fetchTodayPhotos();
-          void get().fetchStreakHistory();
-          void get().recalculateStreak();
-        }
-      )
-      .on(
-        "postgres_changes",
-        { event: "*", schema: "public", table: "streaks" },
-        () => {
-          void get().fetchStreak();
-        }
-      )
+      .on("postgres_changes", { event: "*", schema: "public", table: "streak_photos" }, () => {
+        void get().fetchTodayPhotos();
+        void get().fetchStreakHistory();
+        void get().recalculateStreak();
+      })
+      .on("postgres_changes", { event: "*", schema: "public", table: "streaks" }, () => {
+        void get().fetchStreak();
+      })
       .subscribe();
 
     return () => {
@@ -473,10 +450,7 @@ export const useStreakStore = create<StreakState>((set, get) => ({
 }));
 
 /** Kullanıcı bugün fotoğraf göndermiş mi? */
-export function benBugunGonderdimMi(
-  todayPhotos: StreakPhoto[],
-  userId?: string
-): boolean {
+export function benBugunGonderdimMi(todayPhotos: StreakPhoto[], userId?: string): boolean {
   if (!userId) return false;
   return todayPhotos.some((p) => p.createdBy === userId);
 }
@@ -496,8 +470,5 @@ export function bugunTamamlandiMi(
   userId?: string,
   partnerId?: string | null
 ): boolean {
-  return (
-    benBugunGonderdimMi(todayPhotos, userId) &&
-    partnerBugunGonderdiMi(todayPhotos, partnerId)
-  );
+  return benBugunGonderdimMi(todayPhotos, userId) && partnerBugunGonderdiMi(todayPhotos, partnerId);
 }

@@ -176,18 +176,11 @@ function MenuSatiri({
           </Text>
         </View>
         {sagEtiket ? (
-          <Text
-            className="mr-1 text-sm font-semibold"
-            style={{ color: palet.metinIkincil }}
-          >
+          <Text className="mr-1 text-sm font-semibold" style={{ color: palet.metinIkincil }}>
             {sagEtiket}
           </Text>
         ) : (
-          <ChevronRight
-            size={20}
-            color={palet.metinIkincil}
-            strokeWidth={2.2}
-          />
+          <ChevronRight size={20} color={palet.metinIkincil} strokeWidth={2.2} />
         )}
       </View>
     </Pressable>
@@ -209,20 +202,14 @@ export default function MenuEkrani() {
   };
 
   return (
-    <SafeAreaView
-      edges={["top"]}
-      style={{ flex: 1, backgroundColor: palet.arkaplan }}
-    >
+    <SafeAreaView edges={["top"]} style={{ flex: 1, backgroundColor: palet.arkaplan }}>
       <ScrollView
         style={{ flex: 1 }}
         contentContainerStyle={{ padding: 20, paddingBottom: 32, gap: 16 }}
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
       >
-        <EkranBasligi
-          baslik="Menü"
-          altBaslik="Tüm özellikler ve ayarlar burada ☰"
-        />
+        <EkranBasligi baslik="Menü" altBaslik="Tüm özellikler ve ayarlar burada ☰" />
 
         <MenuBolumu
           baslik="Özellikler"

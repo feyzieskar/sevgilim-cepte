@@ -51,11 +51,7 @@ async function pushIzniIste(): Promise<boolean> {
 
 // EAS projectId: app config / Constants üzerinden okunur.
 function projectIdAl(): string | undefined {
-  return (
-    Constants.expoConfig?.extra?.eas?.projectId ??
-    Constants.easConfig?.projectId ??
-    undefined
-  );
+  return Constants.expoConfig?.extra?.eas?.projectId ?? Constants.easConfig?.projectId ?? undefined;
 }
 
 /**
@@ -66,9 +62,7 @@ function projectIdAl(): string | undefined {
 export async function kaydetPushToken(): Promise<string | null> {
   try {
     if (!Device.isDevice) {
-      console.warn(
-        "[pushService] Simülatörde Expo Push Token alınamaz; fiziksel cihaz kullan."
-      );
+      console.warn("[pushService] Simülatörde Expo Push Token alınamaz; fiziksel cihaz kullan.");
       return null;
     }
 
@@ -116,10 +110,7 @@ export async function temizlePushToken(): Promise<void> {
   const userId = useAuthStore.getState().user?.id;
   if (!userId) return;
   try {
-    await supabase
-      .from("profiles")
-      .update({ expo_push_token: null })
-      .eq("id", userId);
+    await supabase.from("profiles").update({ expo_push_token: null }).eq("id", userId);
   } catch (e) {
     console.warn("[pushService] temizlePushToken hatası:", e);
   }

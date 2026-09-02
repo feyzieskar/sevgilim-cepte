@@ -2,13 +2,7 @@
 // RUH HALİ SEÇENEKLERİ
 // ====================================================================
 
-export type MoodTipi =
-  | "mutlu"
-  | "keyifli"
-  | "normal"
-  | "yorgun"
-  | "uzgun"
-  | "stresli";
+export type MoodTipi = "mutlu" | "keyifli" | "normal" | "yorgun" | "uzgun" | "stresli";
 
 export interface MoodSecenegi {
   id: MoodTipi;
@@ -27,9 +21,7 @@ export const MOOD_SECENEKLERI: MoodSecenegi[] = [
 ];
 
 export function moodBilgisi(mood: MoodTipi): MoodSecenegi {
-  return (
-    MOOD_SECENEKLERI.find((m) => m.id === mood) ?? MOOD_SECENEKLERI[2]
-  );
+  return MOOD_SECENEKLERI.find((m) => m.id === mood) ?? MOOD_SECENEKLERI[2];
 }
 
 /** Üzgün veya stresli ruh hali mi? (şefkat aksiyonu için) */

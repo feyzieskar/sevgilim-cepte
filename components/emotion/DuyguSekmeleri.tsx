@@ -4,7 +4,7 @@
 
 import { Pressable, Text, View } from "react-native";
 
-import { RADIUS, SHADOWS } from "@/constants/theme";
+import { SHADOWS } from "@/constants/theme";
 import { usePalet } from "@/store/useThemeStore";
 
 export type DuyguAltBolum = "karnim" | "sevgi" | "surpriz";

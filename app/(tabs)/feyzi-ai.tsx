@@ -110,8 +110,7 @@ export default function FeyziAiEkrani() {
               Merhaba aşkım 💕
             </Text>
             <Text className="mt-2 text-center" style={{ color: palet.metinIkincil }}>
-              Aklında ne varsa yazabilirsin. Yukarıdan bir mod seçip sohbete
-              başlayabilirsin.
+              Aklında ne varsa yazabilirsin. Yukarıdan bir mod seçip sohbete başlayabilirsin.
             </Text>
           </View>
         ) : (
@@ -167,11 +166,7 @@ export default function FeyziAiEkrani() {
             ref={inputRef}
             value={metin}
             onChangeText={setMetin}
-            placeholder={
-              bekleyenOnay
-                ? "Önce onayı cevapla..."
-                : "Bir şeyler yaz..."
-            }
+            placeholder={bekleyenOnay ? "Önce onayı cevapla..." : "Bir şeyler yaz..."}
             placeholderTextColor={palet.metinIkincil}
             multiline
             style={{

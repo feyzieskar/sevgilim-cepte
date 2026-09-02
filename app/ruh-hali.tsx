@@ -41,19 +41,13 @@ export default function RuhHaliEkrani() {
   const setTodayMood = useMoodStore((s) => s.setTodayMood);
   const setMode = useChatStore((s) => s.setMode);
 
-  const benim = useMemo(
-    () => todayMoods.find((m) => m.createdBy === userId),
-    [todayMoods, userId]
-  );
+  const benim = useMemo(() => todayMoods.find((m) => m.createdBy === userId), [todayMoods, userId]);
   const partnerin = useMemo(
-    () =>
-      partnerId ? todayMoods.find((m) => m.createdBy === partnerId) : undefined,
+    () => (partnerId ? todayMoods.find((m) => m.createdBy === partnerId) : undefined),
     [todayMoods, partnerId]
   );
 
-  const [seciliMood, setSeciliMood] = useState<MoodTipi | undefined>(
-    benim?.mood
-  );
+  const [seciliMood, setSeciliMood] = useState<MoodTipi | undefined>(benim?.mood);
   const [not, setNot] = useState(benim?.note ?? "");
 
   useEffect(() => {
@@ -65,7 +59,7 @@ export default function RuhHaliEkrani() {
       setSeciliMood(benim.mood);
       setNot(benim.note ?? "");
     }
-  }, [benim?.id, benim?.mood, benim?.note]);
+  }, [benim]);
 
   const moodKaydet = async (mood: MoodTipi, emoji: string) => {
     setSeciliMood(mood);
@@ -90,14 +84,10 @@ export default function RuhHaliEkrani() {
     router.push("/duygular");
   };
 
-  const partnerDusukMood =
-    partnerin && dusukMoodMu(partnerin.mood);
+  const partnerDusukMood = partnerin && dusukMoodMu(partnerin.mood);
 
   return (
-    <SafeAreaView
-      edges={["top"]}
-      style={{ flex: 1, backgroundColor: palet.arkaplan }}
-    >
+    <SafeAreaView edges={["top"]} style={{ flex: 1, backgroundColor: palet.arkaplan }}>
       <ScrollView
         contentContainerStyle={{ padding: 20, paddingBottom: 32 }}
         showsVerticalScrollIndicator={false}
@@ -111,11 +101,7 @@ export default function RuhHaliEkrani() {
           />
         }
       >
-        <EkranBasligi
-          baslik="Ruh Hali"
-          altBaslik="Bugün nasıl hissediyorsun? 🌈"
-          geriDugmesi
-        />
+        <EkranBasligi baslik="Ruh Hali" altBaslik="Bugün nasıl hissediyorsun? 🌈" geriDugmesi />
 
         {!yuklendiMi && loading ? (
           <View className="items-center py-16">
@@ -131,11 +117,7 @@ export default function RuhHaliEkrani() {
               <Text className="mb-4 text-lg font-bold" style={{ color: palet.metin }}>
                 Bugün nasıl hissediyorsun?
               </Text>
-              <MoodSecici
-                secili={seciliMood}
-                onChange={moodKaydet}
-                disabled={kaydediliyor}
-              />
+              <MoodSecici secili={seciliMood} onChange={moodKaydet} disabled={kaydediliyor} />
 
               <Text
                 className="mb-2 mt-5 text-sm font-semibold"
@@ -160,12 +142,7 @@ export default function RuhHaliEkrani() {
                 }}
               />
 
-              {kaydediliyor ? (
-                <ActivityIndicator
-                  className="mt-3"
-                  color={palet.primary}
-                />
-              ) : null}
+              {kaydediliyor ? <ActivityIndicator className="mt-3" color={palet.primary} /> : null}
             </View>
 
             {/* Partner ruh hali */}
@@ -182,26 +159,17 @@ export default function RuhHaliEkrani() {
                   <View className="flex-row items-center">
                     <Text style={{ fontSize: 40 }}>{partnerin.emoji}</Text>
                     <View className="ml-4 flex-1">
-                      <Text
-                        className="text-base font-semibold"
-                        style={{ color: palet.metin }}
-                      >
+                      <Text className="text-base font-semibold" style={{ color: palet.metin }}>
                         {moodBilgisi(partnerin.mood).etiket}
                       </Text>
-                      <Text
-                        className="mt-0.5 text-sm"
-                        style={{ color: palet.metinIkincil }}
-                      >
+                      <Text className="mt-0.5 text-sm" style={{ color: palet.metinIkincil }}>
                         {moodSaatFormat(partnerin.createdAt)}
                       </Text>
                     </View>
                   </View>
                   {partnerin.note ? (
-                    <Text
-                      className="mt-3 italic"
-                      style={{ color: palet.metinIkincil }}
-                    >
-                      "{partnerin.note}"
+                    <Text className="mt-3 italic" style={{ color: palet.metinIkincil }}>
+                      {`"${partnerin.note}"`}
                     </Text>
                   ) : null}
                 </View>
@@ -213,10 +181,7 @@ export default function RuhHaliEkrani() {
 
               {partnerDusukMood ? (
                 <View className="mt-4 gap-2">
-                  <Text
-                    className="text-center font-semibold"
-                    style={{ color: palet.metin }}
-                  >
+                  <Text className="text-center font-semibold" style={{ color: palet.metin }}>
                     Ona moral ver 💙
                   </Text>
                   <Pressable
@@ -224,10 +189,7 @@ export default function RuhHaliEkrani() {
                     className="rounded-xl py-3"
                     style={{ backgroundColor: `${palet.primary}18` }}
                   >
-                    <Text
-                      className="text-center font-semibold"
-                      style={{ color: palet.primary }}
-                    >
+                    <Text className="text-center font-semibold" style={{ color: palet.primary }}>
                       Feyzi ile moral ver 💬
                     </Text>
                   </Pressable>
@@ -236,11 +198,8 @@ export default function RuhHaliEkrani() {
                     className="rounded-xl py-3"
                     style={{ backgroundColor: palet.yuzeyIkincil }}
                   >
-                    <Text
-                      className="text-center font-semibold"
-                      style={{ color: palet.metin }}
-                    >
-                      Sevgi Saati'ne git 💕
+                    <Text className="text-center font-semibold" style={{ color: palet.metin }}>
+                      {"Sevgi Saati'ne git 💕"}
                     </Text>
                   </Pressable>
                 </View>
@@ -249,10 +208,7 @@ export default function RuhHaliEkrani() {
 
             {/* Geçmiş */}
             <View>
-              <Text
-                className="mb-3 text-lg font-bold"
-                style={{ color: palet.metin }}
-              >
+              <Text className="mb-3 text-lg font-bold" style={{ color: palet.metin }}>
                 Son 14 Gün
               </Text>
               <MoodGecmisi history={history} limit={14} />

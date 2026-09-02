@@ -9,23 +9,14 @@
 import { RealtimeChannel } from "@supabase/supabase-js";
 import { create } from "zustand";
 
-import {
-  aciklikEtiketi,
-  AciklikSeviyesi,
-  rastgeleYemekOner,
-} from "@/data/yemekOnerileri";
+import { aciklikEtiketi, AciklikSeviyesi, rastgeleYemekOner } from "@/data/yemekOnerileri";
 import { supabase } from "@/lib/supabase";
 import { sendPushToPartner } from "@/services/pushService";
 import { useAuthStore } from "@/store/authStore";
 
 export type EmotionType = "hungry" | "love";
 
-export type SevgiEylemi =
-  | "sarilmak"
-  | "opucuk"
-  | "ozledim"
-  | "el_ele"
-  | "ses";
+export type SevgiEylemi = "sarilmak" | "opucuk" | "ozledim" | "el_ele" | "ses";
 
 export interface EmotionEvent {
   id: string;
@@ -169,17 +160,11 @@ export const useEmotionStore = create<EmotionState>((set, get) => ({
     }
 
     const yeni = satiriEmotionCevir(data as EmotionRow);
-    set((s) =>
-      s.events.some((x) => x.id === yeni.id)
-        ? s
-        : { events: [yeni, ...s.events] }
-    );
+    set((s) => (s.events.some((x) => x.id === yeni.id) ? s : { events: [yeni, ...s.events] }));
 
-    void sendPushToPartner(
-      "Sevgilin acıkmış! 🍽️",
-      `'${seviyeEtiket}' — önerdiğim: ${suggestion}`,
-      { screen: "duygular" }
-    );
+    void sendPushToPartner("Sevgilin acıkmış! 🍽️", `'${seviyeEtiket}' — önerdiğim: ${suggestion}`, {
+      screen: "duygular",
+    });
 
     return yeni;
   },
@@ -207,11 +192,7 @@ export const useEmotionStore = create<EmotionState>((set, get) => ({
     }
 
     const yeni = satiriEmotionCevir(data as EmotionRow);
-    set((s) =>
-      s.events.some((x) => x.id === yeni.id)
-        ? s
-        : { events: [yeni, ...s.events] }
-    );
+    set((s) => (s.events.some((x) => x.id === yeni.id) ? s : { events: [yeni, ...s.events] }));
 
     void sendPushToPartner("Sevgin seni istiyor 💕", mesaj, {
       screen: "duygular",
@@ -225,13 +206,9 @@ export const useEmotionStore = create<EmotionState>((set, get) => ({
 
     emotionKanali = supabase
       .channel("emotion-events-degisiklikleri")
-      .on(
-        "postgres_changes",
-        { event: "*", schema: "public", table: "emotion_events" },
-        () => {
-          get().fetchEvents();
-        }
-      )
+      .on("postgres_changes", { event: "*", schema: "public", table: "emotion_events" }, () => {
+        get().fetchEvents();
+      })
       .subscribe();
 
     return () => {
@@ -244,10 +221,7 @@ export const useEmotionStore = create<EmotionState>((set, get) => ({
 }));
 
 /** Geçmiş satırı için Türkçe metin üretir. */
-export function emotionGecmisMetni(
-  event: EmotionEvent,
-  benimId: string | undefined
-): string {
+export function emotionGecmisMetni(event: EmotionEvent, benimId: string | undefined): string {
   const benim = event.createdBy === benimId;
 
   if (event.type === "hungry") {

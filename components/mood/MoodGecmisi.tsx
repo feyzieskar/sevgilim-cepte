@@ -5,7 +5,7 @@
 import { Text, View } from "react-native";
 
 import { tarihKisa } from "@/constants/tarih";
-import { RADIUS, SHADOWS } from "@/constants/theme";
+import { SHADOWS } from "@/constants/theme";
 import { GunlukMoodOzet } from "@/store/moodStore";
 import { usePalet } from "@/store/useThemeStore";
 
@@ -24,9 +24,7 @@ export function MoodGecmisi({ history, limit = 14 }: MoodGecmisiProps) {
         className="items-center rounded-2xl py-8"
         style={{ backgroundColor: palet.yuzey, ...SHADOWS.yumusak }}
       >
-        <Text style={{ color: palet.metinIkincil }}>
-          Henüz ruh hali geçmişi yok 🌈
-        </Text>
+        <Text style={{ color: palet.metinIkincil }}>Henüz ruh hali geçmişi yok 🌈</Text>
       </View>
     );
   }
@@ -53,9 +51,7 @@ export function MoodGecmisi({ history, limit = 14 }: MoodGecmisiProps) {
               <Text className="text-xs" style={{ color: palet.metinIkincil }}>
                 Partner
               </Text>
-              <Text style={{ fontSize: 22 }}>
-                {gun.partnerin?.emoji ?? "—"}
-              </Text>
+              <Text style={{ fontSize: 22 }}>{gun.partnerin?.emoji ?? "—"}</Text>
             </View>
           </View>
         </View>

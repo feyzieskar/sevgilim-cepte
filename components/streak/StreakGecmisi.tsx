@@ -57,16 +57,8 @@ export function StreakGecmisi({ history, userId }: StreakGecmisiProps) {
             </View>
 
             <View className="flex-row gap-3">
-              <FotoKutusu
-                etiket="Sen"
-                uri={benim?.photoUrl}
-                bosMetin="Gönderilmedi"
-              />
-              <FotoKutusu
-                etiket="Partner"
-                uri={partnerin?.photoUrl}
-                bosMetin="Bekleniyor"
-              />
+              <FotoKutusu etiket="Sen" uri={benim?.photoUrl} bosMetin="Gönderilmedi" />
+              <FotoKutusu etiket="Partner" uri={partnerin?.photoUrl} bosMetin="Bekleniyor" />
             </View>
           </View>
         );
@@ -75,15 +67,7 @@ export function StreakGecmisi({ history, userId }: StreakGecmisiProps) {
   );
 }
 
-function FotoKutusu({
-  etiket,
-  uri,
-  bosMetin,
-}: {
-  etiket: string;
-  uri?: string;
-  bosMetin: string;
-}) {
+function FotoKutusu({ etiket, uri, bosMetin }: { etiket: string; uri?: string; bosMetin: string }) {
   const palet = usePalet();
 
   return (

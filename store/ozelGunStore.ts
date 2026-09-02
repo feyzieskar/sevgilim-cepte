@@ -97,9 +97,7 @@ export const useOzelGunStore = create<OzelGunState>((set, get) => ({
 
     const yeni = satiriOzelGuneCevir(data as OzelGunRow);
     set((s) =>
-      s.ozelGunler.some((x) => x.id === yeni.id)
-        ? s
-        : { ozelGunler: [...s.ozelGunler, yeni] }
+      s.ozelGunler.some((x) => x.id === yeni.id) ? s : { ozelGunler: [...s.ozelGunler, yeni] }
     );
     return yeni;
   },
@@ -135,10 +133,7 @@ export const useOzelGunStore = create<OzelGunState>((set, get) => ({
   },
 
   deleteOzelGun: async (id) => {
-    const { error } = await supabase
-      .from("special_days")
-      .delete()
-      .eq("id", id);
+    const { error } = await supabase.from("special_days").delete().eq("id", id);
     if (error) {
       console.warn("[ozelGunStore] deleteOzelGun hatası:", error.message);
     }
@@ -150,13 +145,9 @@ export const useOzelGunStore = create<OzelGunState>((set, get) => ({
 
     ozelGunKanali = supabase
       .channel("special-days-degisiklikleri")
-      .on(
-        "postgres_changes",
-        { event: "*", schema: "public", table: "special_days" },
-        () => {
-          get().fetchOzelGunler();
-        }
-      )
+      .on("postgres_changes", { event: "*", schema: "public", table: "special_days" }, () => {
+        get().fetchOzelGunler();
+      })
       .subscribe();
 
     return () => {

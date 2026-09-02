@@ -41,9 +41,7 @@ export default function SevmeSebepleriEkrani() {
     [ozelSebepler]
   );
 
-  const [bugununSebebi, setBugununSebebi] = useState(
-    () => gununElemaniniSec(tumSebepler) ?? ""
-  );
+  const [bugununSebebi, setBugununSebebi] = useState(() => gununElemaniniSec(tumSebepler) ?? "");
   const [yeniMetin, setYeniMetin] = useState("");
   const [kaydediliyor, setKaydediliyor] = useState(false);
   const [hazirAcik, setHazirAcik] = useState(false);
@@ -54,8 +52,7 @@ export default function SevmeSebepleriEkrani() {
 
   const rastgeleSebep = () => {
     if (tumSebepler.length === 0) return;
-    const rastgele =
-      tumSebepler[Math.floor(Math.random() * tumSebepler.length)];
+    const rastgele = tumSebepler[Math.floor(Math.random() * tumSebepler.length)];
     setBugununSebebi(rastgele);
   };
 
@@ -85,10 +82,7 @@ export default function SevmeSebepleriEkrani() {
   };
 
   return (
-    <SafeAreaView
-      edges={["top"]}
-      style={{ flex: 1, backgroundColor: palet.arkaplan }}
-    >
+    <SafeAreaView edges={["top"]} style={{ flex: 1, backgroundColor: palet.arkaplan }}>
       <ScrollView
         contentContainerStyle={{ padding: 20, paddingBottom: 32 }}
         showsVerticalScrollIndicator={false}
@@ -102,11 +96,7 @@ export default function SevmeSebepleriEkrani() {
           />
         }
       >
-        <EkranBasligi
-          baslik="Sevme Sebepleri"
-          altBaslik="Seni neden seviyorum? 💝"
-          geriDugmesi
-        />
+        <EkranBasligi baslik="Sevme Sebepleri" altBaslik="Seni neden seviyorum? 💝" geriDugmesi />
 
         {/* Bugünün sebebi */}
         <LinearGradient
@@ -136,9 +126,7 @@ export default function SevmeSebepleriEkrani() {
               <Ionicons name="heart" size={20} color="#FFFFFF" />
             </Pressable>
           </View>
-          <Text className="mt-4 text-xl font-semibold leading-7 text-white">
-            {bugununSebebi}
-          </Text>
+          <Text className="mt-4 text-xl font-semibold leading-7 text-white">{bugununSebebi}</Text>
           <Text className="mt-3 text-xs text-white" style={{ opacity: 0.85 }}>
             Yeni bir sebep için kalbe dokun 💗
           </Text>
@@ -176,8 +164,7 @@ export default function SevmeSebepleriEkrani() {
               disabled={kaydediliyor || yeniMetin.trim() === ""}
               className="ml-2 h-12 w-12 items-center justify-center rounded-full"
               style={{
-                backgroundColor:
-                  yeniMetin.trim() === "" ? palet.kenarlik : palet.primary,
+                backgroundColor: yeniMetin.trim() === "" ? palet.kenarlik : palet.primary,
               }}
             >
               {kaydediliyor ? (
@@ -208,23 +195,12 @@ export default function SevmeSebepleriEkrani() {
                   <Text className="mr-2 text-lg">💝</Text>
                   <View className="flex-1">
                     <Text style={{ color: palet.metin }}>{r.text}</Text>
-                    <Text
-                      className="mt-0.5 text-xs"
-                      style={{ color: palet.metinIkincil }}
-                    >
+                    <Text className="mt-0.5 text-xs" style={{ color: palet.metinIkincil }}>
                       {r.createdBy === userId ? "Sen ekledin" : "Partner ekledi"}
                     </Text>
                   </View>
-                  <Pressable
-                    onPress={() => sebepSil(r.id, r.text)}
-                    hitSlop={8}
-                    className="p-1"
-                  >
-                    <Ionicons
-                      name="trash-outline"
-                      size={20}
-                      color="#E14D80"
-                    />
+                  <Pressable onPress={() => sebepSil(r.id, r.text)} hitSlop={8} className="p-1">
+                    <Ionicons name="trash-outline" size={20} color="#E14D80" />
                   </Pressable>
                 </View>
               ))}

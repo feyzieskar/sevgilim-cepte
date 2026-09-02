@@ -17,10 +17,7 @@ import {
 } from "react-native";
 import { Calendar, LocaleConfig } from "react-native-calendars";
 
-import {
-  BUCKET_KATEGORILERI,
-  BucketKategori,
-} from "@/data/bucketList";
+import { BUCKET_KATEGORILERI, BucketKategori } from "@/data/bucketList";
 import { AYLAR, GUNLER, bugunISO, tarihUzun } from "@/constants/tarih";
 import { RADIUS } from "@/constants/theme";
 import { BucketGirdi } from "@/store/bucketListStore";
@@ -41,11 +38,7 @@ interface BucketFormModalProps {
   onKaydet: (veri: BucketGirdi) => void | Promise<void>;
 }
 
-export function BucketFormModal({
-  visible,
-  onClose,
-  onKaydet,
-}: BucketFormModalProps) {
+export function BucketFormModal({ visible, onClose, onKaydet }: BucketFormModalProps) {
   const palet = usePalet();
   const mod = useThemeStore((s) => s.mod);
 
@@ -164,10 +157,7 @@ export function BucketFormModal({
                     }}
                   >
                     <Text>{k.emoji}</Text>
-                    <Text
-                      className="ml-1 text-sm font-semibold"
-                      style={{ color: palet.metin }}
-                    >
+                    <Text className="ml-1 text-sm font-semibold" style={{ color: palet.metin }}>
                       {k.etiket}
                     </Text>
                   </Pressable>
@@ -214,8 +204,7 @@ export function BucketFormModal({
               disabled={kaydediliyor || title.trim() === ""}
               className="mb-6 mt-2 items-center rounded-xl py-4"
               style={{
-                backgroundColor:
-                  title.trim() === "" ? palet.kenarlik : palet.primary,
+                backgroundColor: title.trim() === "" ? palet.kenarlik : palet.primary,
               }}
             >
               {kaydediliyor ? (

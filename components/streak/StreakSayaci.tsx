@@ -28,10 +28,7 @@ export function StreakSayaci({ currentStreak, longestStreak }: StreakSayaciProps
   useEffect(() => {
     if (currentStreak > 0) {
       olcek.value = withRepeat(
-        withSequence(
-          withTiming(1.08, { duration: 700 }),
-          withTiming(1, { duration: 700 })
-        ),
+        withSequence(withTiming(1.08, { duration: 700 }), withTiming(1, { duration: 700 })),
         -1,
         true
       );
@@ -67,10 +64,7 @@ export function StreakSayaci({ currentStreak, longestStreak }: StreakSayaciProps
         </View>
       </Animated.View>
 
-      <Text
-        className="mt-4 text-5xl font-bold"
-        style={{ color: palet.metin }}
-      >
+      <Text className="mt-4 text-5xl font-bold" style={{ color: palet.metin }}>
         {currentStreak}
       </Text>
       <Text className="mt-1 text-lg font-semibold" style={{ color: palet.primary }}>

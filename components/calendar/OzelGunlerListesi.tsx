@@ -15,12 +15,7 @@ import { OzelGunFormModal } from "@/components/calendar/OzelGunFormModal";
 import { KATEGORILER } from "@/constants/kategoriler";
 import { AYLAR } from "@/constants/tarih";
 import { RADIUS, SHADOWS } from "@/constants/theme";
-import {
-  enYakinOzelGun,
-  kalanGun,
-  OzelGun,
-  sonrakiTarih,
-} from "@/data/ozelGunler";
+import { enYakinOzelGun, kalanGun, OzelGun, sonrakiTarih } from "@/data/ozelGunler";
 import { OzelGunGirdi, useOzelGunStore } from "@/store/ozelGunStore";
 import { usePalet } from "@/store/useThemeStore";
 
@@ -165,8 +160,9 @@ export function OzelGunlerListesi() {
 
       {yuklendiMi && ogeler.length === 0 ? (
         <Text className="mt-8 text-center" style={{ color: palet.metinIkincil }}>
-          Henüz özel gün yok. Yukarıdaki "Yeni Özel Gün Ekle" ile
-          yıldönümünüzü, doğum günlerinizi ekleyin 💜
+          {
+            'Henüz özel gün yok. Yukarıdaki "Yeni Özel Gün Ekle" ile yıldönümünüzü, doğum günlerinizi ekleyin 💜'
+          }
         </Text>
       ) : null}
 

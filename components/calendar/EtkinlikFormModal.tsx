@@ -29,10 +29,7 @@ import type { CalendarEvent } from "@/store/calendarStore";
 import { usePalet } from "@/store/useThemeStore";
 
 // Formdan dışarı verilen veri (id ve notificationId yönetimi ekranda)
-export type EtkinlikFormVerisi = Omit<
-  CalendarEvent,
-  "id" | "notificationId"
->;
+export type EtkinlikFormVerisi = Omit<CalendarEvent, "id" | "notificationId">;
 
 interface EtkinlikFormModalProps {
   visible: boolean;
@@ -121,17 +118,10 @@ export function EtkinlikFormModal({
   } as const;
 
   return (
-    <Modal
-      visible={visible}
-      animationType="slide"
-      transparent
-      onRequestClose={onClose}
-    >
+    <Modal visible={visible} animationType="slide" transparent onRequestClose={onClose}>
       {/* Yarı saydam arka plan */}
       <View className="flex-1 justify-end" style={{ backgroundColor: "rgba(0,0,0,0.4)" }}>
-        <KeyboardAvoidingView
-          behavior={Platform.OS === "ios" ? "padding" : undefined}
-        >
+        <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : undefined}>
           <View
             style={{
               backgroundColor: palet.yuzey,
@@ -141,7 +131,7 @@ export function EtkinlikFormModal({
             }}
           >
             {/* Başlık çubuğu */}
-            <View className="flex-row items-center justify-between px-5 pt-5 pb-3">
+            <View className="flex-row items-center justify-between px-5 pb-3 pt-5">
               <Text className="text-xl font-bold" style={{ color: palet.metin }}>
                 {duzenlenen ? "Etkinliği Düzenle" : "Yeni Etkinlik"}
               </Text>

@@ -40,9 +40,7 @@ function zamanAraligi(event: CalendarEvent): {
 
 // Yazılabilir bir takvim kimliği bulur (yoksa yeni bir tane oluşturur).
 async function yazilabilirTakvimId(): Promise<string> {
-  const takvimler = await Calendar.getCalendarsAsync(
-    Calendar.EntityTypes.EVENT
-  );
+  const takvimler = await Calendar.getCalendarsAsync(Calendar.EntityTypes.EVENT);
 
   // iOS'ta varsayılan takvimi tercih et
   if (Platform.OS === "ios") {
@@ -59,9 +57,7 @@ async function yazilabilirTakvimId(): Promise<string> {
 
   // Hiç uygun takvim yoksa yeni bir tane oluştur
   const kaynakId =
-    Platform.OS === "ios"
-      ? (await Calendar.getDefaultCalendarAsync()).source.id
-      : undefined;
+    Platform.OS === "ios" ? (await Calendar.getDefaultCalendarAsync()).source.id : undefined;
 
   return Calendar.createCalendarAsync({
     title: "Sevgilim Cepte",
@@ -75,9 +71,7 @@ async function yazilabilirTakvimId(): Promise<string> {
 }
 
 // Etkinliği cihaz takvimine aktarır.
-export async function appleTakvimeAktar(
-  event: CalendarEvent
-): Promise<AktarmaSonucu> {
+export async function appleTakvimeAktar(event: CalendarEvent): Promise<AktarmaSonucu> {
   try {
     const izin = await Calendar.requestCalendarPermissionsAsync();
     if (izin.status !== "granted") {

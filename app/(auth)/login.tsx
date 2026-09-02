@@ -23,6 +23,7 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
+import Constants from "expo-constants";
 import { GRADIENTS, RADIUS, SHADOWS } from "@/constants/theme";
 import { useAuthStore } from "@/store/authStore";
 import { usePalet } from "@/store/useThemeStore";
@@ -32,6 +33,10 @@ export default function LoginEkrani() {
   const loading = useAuthStore((s) => s.loading);
   const signIn = useAuthStore((s) => s.signIn);
   const signUp = useAuthStore((s) => s.signUp);
+
+  // Kayıt açma/kapama kontrolü (app.config.js / EXPO_PUBLIC_ALLOW_SIGNUP)
+  const allowSignup =
+    Constants.expoConfig?.extra?.allowSignup ?? process.env.EXPO_PUBLIC_ALLOW_SIGNUP === "true";
 
   // Mod: giriş mi kayıt mı?
   const [kayitMi, setKayitMi] = useState(false);
@@ -45,9 +50,7 @@ export default function LoginEkrani() {
       return;
     }
 
-    const sonuc = kayitMi
-      ? await signUp(email, sifre, ad)
-      : await signIn(email, sifre);
+    const sonuc = kayitMi ? await signUp(email, sifre, ad) : await signIn(email, sifre);
 
     if (!sonuc.basarili) {
       Alert.alert("Olmadı 💭", sonuc.hata ?? "Bir şeyler ters gitti.");
@@ -153,19 +156,21 @@ export default function LoginEkrani() {
             </LinearGradient>
           </Pressable>
 
-          {/* Mod değiştir */}
-          <Pressable
-            onPress={() => setKayitMi((x) => !x)}
-            className="mt-6 items-center"
-            disabled={loading}
-          >
-            <Text style={{ color: palet.metinIkincil }}>
-              {kayitMi ? "Zaten hesabın var mı? " : "Hesabın yok mu? "}
-              <Text style={{ color: palet.primary, fontWeight: "700" }}>
-                {kayitMi ? "Giriş yap" : "Kayıt ol"}
+          {/* Mod değiştir (yalnızca kayıt açıksa gösterilir) */}
+          {allowSignup ? (
+            <Pressable
+              onPress={() => setKayitMi((x) => !x)}
+              className="mt-6 items-center"
+              disabled={loading}
+            >
+              <Text style={{ color: palet.metinIkincil }}>
+                {kayitMi ? "Zaten hesabın var mı? " : "Hesabın yok mu? "}
+                <Text style={{ color: palet.primary, fontWeight: "700" }}>
+                  {kayitMi ? "Giriş yap" : "Kayıt ol"}
+                </Text>
               </Text>
-            </Text>
-          </Pressable>
+            </Pressable>
+          ) : null}
         </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>

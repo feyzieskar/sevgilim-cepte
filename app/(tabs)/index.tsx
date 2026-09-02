@@ -31,21 +31,12 @@ export default function AnaEkran() {
   // Selamlama metnini saate göre belirle (giriş yapan kullanıcının adıyla)
   const saat = new Date().getHours();
   const zamanSelam =
-    saat < 6
-      ? "İyi geceler"
-      : saat < 12
-        ? "Günaydın"
-        : saat < 18
-          ? "İyi günler"
-          : "İyi akşamlar";
+    saat < 6 ? "İyi geceler" : saat < 12 ? "Günaydın" : saat < 18 ? "İyi günler" : "İyi akşamlar";
   const emoji = saat < 6 ? "🌙" : saat < 12 ? "☀️" : saat < 18 ? "🌸" : "🌆";
   const selam = ad ? `${zamanSelam} ${ad} ${emoji}` : `${zamanSelam} ${emoji}`;
 
   return (
-    <SafeAreaView
-      edges={["top"]}
-      style={{ flex: 1, backgroundColor: palet.arkaplan }}
-    >
+    <SafeAreaView edges={["top"]} style={{ flex: 1, backgroundColor: palet.arkaplan }}>
       <ScrollView
         contentContainerStyle={{ padding: 20, paddingBottom: 32 }}
         showsVerticalScrollIndicator={false}

@@ -37,10 +37,7 @@ LocaleConfig.locales.tr = {
 };
 LocaleConfig.defaultLocale = "tr";
 
-const EMOJILER = [
-  "💕", "💘", "🎂", "🎉", "🌹", "💍",
-  "❤️", "🌟", "🎁", "✈️", "🏖️", "🏡",
-];
+const EMOJILER = ["💕", "💘", "🎂", "🎉", "🌹", "💍", "❤️", "🌟", "🎁", "✈️", "🏖️", "🏡"];
 
 interface OzelGunFormModalProps {
   visible: boolean;

@@ -69,10 +69,7 @@ export function EtkinlikKarti() {
               className="rounded-full px-3 py-1"
               style={{ backgroundColor: kategori.renk + "22" }}
             >
-              <Text
-                className="text-xs font-semibold"
-                style={{ color: kategori.renk }}
-              >
+              <Text className="text-xs font-semibold" style={{ color: kategori.renk }}>
                 {kategori.etiket}
               </Text>
             </View>

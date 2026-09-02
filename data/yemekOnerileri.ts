@@ -48,7 +48,5 @@ export function rastgeleYemekOner(seviye: AciklikSeviyesi): string {
 
 /** Seviye kodundan kullanıcıya gösterilen etiketi bulur. */
 export function aciklikEtiketi(seviye: AciklikSeviyesi): string {
-  return (
-    ACIKLIK_SECENEKLERI.find((x) => x.seviye === seviye)?.etiket ?? seviye
-  );
+  return ACIKLIK_SECENEKLERI.find((x) => x.seviye === seviye)?.etiket ?? seviye;
 }

@@ -1,156 +1,188 @@
 # Sevgilim Cepte 💕
 
-Tek kişiye özel, romantik bir hediye uygulaması. React Native + Expo (TypeScript) ile geliştirilmiştir. iOS'a `EAS Build` + TestFlight ile dağıtılır.
+[![CI](https://github.com/feyzieskar/sevgilim-cepte/actions/workflows/ci.yml/badge.svg)](https://github.com/feyzieskar/sevgilim-cepte/actions/workflows/ci.yml)
+![TypeScript](https://img.shields.io/badge/TypeScript-strict-blue)
+![Expo SDK](https://img.shields.io/badge/Expo_SDK-54-000020)
+![React Native](https://img.shields.io/badge/React_Native-0.81-61DAFB)
 
-> Bu repo şu an **1. Adım (iskelet)** durumundadır: tema, 5 sekmeli navigasyon ve mock veriyle çalışan ana ekran kartları hazırdır. Backend ve AI entegrasyonları sonraki adımlarda eklenecektir.
+[English](#) | [Türkçe](README.tr.md)
 
----
+> A private two-user iOS companion app built with React Native, Expo, TypeScript and Supabase.
 
-## Teknoloji Stack
-
-| Alan | Seçim |
-|------|-------|
-| Çatı | Expo (managed) + TypeScript |
-| Navigasyon | `expo-router` (dosya tabanlı, tab bar) |
-| Stil | `nativewind` (Tailwind for RN) v4 |
-| State | `zustand` |
-| İkonlar | `@expo/vector-icons` |
-| Gradyan | `expo-linear-gradient` |
-| Güvenli depolama | `expo-secure-store` (AI anahtarları için) |
-
-İleride: Supabase (backend), OpenAI GPT-4o (sohbet), ElevenLabs (TTS), D-ID (konuşan video), `react-native-calendars`, `react-native-maps`, `expo-notifications`, `expo-image-picker`, `expo-calendar`.
+Sevgilim Cepte brings together shared calendar management, photo memories with location tagging, mood tracking, daily photo streaks, a surprise box, and an AI-powered conversational assistant — all synchronized in real-time between two linked partners.
 
 ---
 
-## Kurulum (Mac üzerinde)
+## ✨ Features
 
-> Geliştirme Windows'ta yapılıyor olabilir, ancak iOS build için **Mac + Xcode** gerekir. Node.js 20+ kurulu olmalı.
+### 📅 Shared Calendar
+
+- Shared events with category colors (date, trip, special day, work/school)
+- Event reminders via local notifications
+- Apple Calendar export
+- Real-time sync between partners
+
+### 📸 Memories
+
+- Photo uploads with date, note, and location tagging
+- Timeline view, favorites, and "On this day" feature
+- Map view with pinned memories
+- Reverse geocoding for location names
+
+### 💬 Feyzi AI Assistant
+
+- OpenAI GPT-4o powered conversational assistant
+- Four modes: Normal, Moral Support, Date Planning, Memory Recall
+- **Tool calling**: adds calendar events, special days, and love reasons
+- User confirmation required before any write operation
+- Chat history synced to cloud (personal, not shared with partner)
+
+### 💕 Partner Experience
+
+- Mood sharing and partner mood display
+- Daily photo streak with consecutive-day counter
+- Bucket list with categories and completion tracking
+- Love reasons (50+ built-in + custom shared reasons)
+- Surprise box with contextual unlock (date, mood, trip-based)
+- Push notifications between partners
+
+### 🛡️ Security
+
+- All API secrets are server-side only (Supabase Edge Functions)
+- OpenAI requests proxied through authenticated Edge Function
+- Private media storage with signed URLs (no public access)
+- Row Level Security on every database table
+- Partner-only data access model
+- Secure in-app partner pairing with time-limited codes
+
+---
+
+## 🏗️ Tech Stack
+
+| Layer       | Technology                                            |
+| ----------- | ----------------------------------------------------- |
+| **Mobile**  | React Native, Expo SDK 54, TypeScript, Expo Router    |
+| **Styling** | NativeWind (Tailwind CSS for RN)                      |
+| **State**   | Zustand                                               |
+| **Backend** | Supabase Auth, PostgreSQL, Realtime, Storage          |
+| **Server**  | Supabase Edge Functions (Deno)                        |
+| **AI**      | OpenAI GPT-4o (via server-side proxy)                 |
+| **Native**  | Calendar, Notifications, Location, Image Picker, Maps |
+| **CI**      | GitHub Actions, Jest, ESLint, TypeScript              |
+
+---
+
+## 🏛️ Architecture
+
+```mermaid
+flowchart LR
+    App[React Native / Expo]
+    Auth[Supabase Auth]
+    DB[(PostgreSQL + RLS)]
+    RT[Realtime]
+    Storage[Private Storage]
+    Edge[Edge Functions]
+    AI[OpenAI API]
+    Push[Expo Push API]
+
+    App --> Auth
+    App --> DB
+    DB --> RT
+    RT --> App
+    App --> Storage
+    App --> Edge
+    Edge --> AI
+    Edge --> Push
+```
+
+See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for detailed architecture documentation.
+
+---
+
+## 🔒 Security
+
+- **No API secrets in client bundle** — OpenAI and other service keys are stored exclusively in Supabase Edge Function environment variables
+- **Server-side AI proxy** — All OpenAI requests go through an authenticated Edge Function with model hardcoding and input validation
+- **Private media** — All storage buckets are private; access requires short-lived signed URLs
+- **Row Level Security** — Every table enforces RLS with partner-only access via `linked_user_ids()`
+- **Protected partner linking** — `partner_id` cannot be changed directly from the client
+- **Service role isolation** — Service role key exists only in Edge Functions, never in client code
+
+See [docs/SECURITY_ARCHITECTURE.md](docs/SECURITY_ARCHITECTURE.md) for the full security model.
+
+---
+
+## 🚀 Setup
+
+### Prerequisites
+
+- Node.js 20+
+- Expo CLI (`npx expo`)
+- Supabase project (free tier works)
+
+### Client Setup
 
 ```bash
-# 1) Bağımlılıkları yükle
+git clone https://github.com/feyzieskar/sevgilim-cepte.git
+cd sevgilim-cepte
 npm install
-
-# 2) Tüm Expo paketlerini SDK ile uyumlu sürümlere hizala (ÖNEMLİ)
-npx expo install --fix
-
-# 3) Geliştirme sunucusunu başlat
+cp .env.example .env
+# Fill in your Supabase URL and anon key in .env
 npx expo start
 ```
 
-Telefonda denemek için **Expo Go** uygulamasını App Store'dan indirip QR kodu okutabilirsin (yerel özellikler için ileride development build gerekecek).
+### Server Secrets
 
-### iOS Simülatörde çalıştırma (Mac)
+API secrets are set as Supabase Edge Function environment variables — they are **never** added to the client `.env`:
 
 ```bash
-npx expo start --ios
+supabase secrets set OPENAI_API_KEY=sk-...
+```
+
+### Database
+
+Apply the schema via Supabase SQL Editor:
+
+1. Run `migration.sql` (bootstrap schema)
+2. Run files in `supabase/migrations/` (incremental changes)
+
+---
+
+## 📊 Project Status
+
+| Feature            | Status         |
+| ------------------ | -------------- |
+| Core application   | ✅ Functional  |
+| Supabase backend   | ✅ Implemented |
+| Real-time sync     | ✅ Implemented |
+| Push notifications | ✅ Implemented |
+| AI text assistant  | ✅ Implemented |
+| Partner pairing UI | ✅ Implemented |
+| Voice/video AI     | 🔮 Planned     |
+
+---
+
+## 📖 Documentation
+
+- [Architecture](docs/ARCHITECTURE.md) — System design, data flow, navigation
+- [Security](docs/SECURITY_ARCHITECTURE.md) — Auth, RLS, storage, threat model
+- [Portfolio Copy](docs/PORTFOLIO_COPY.md) — Ready-to-use project descriptions
+- [Screenshot Checklist](docs/SCREENSHOT_CHECKLIST.md) — Guide for capturing app screenshots
+
+---
+
+## 🧪 Development
+
+```bash
+npm run lint          # ESLint
+npm run typecheck     # TypeScript strict check
+npm run test          # Jest unit tests
+npm run format        # Prettier formatting
+npm run check         # All checks combined
 ```
 
 ---
 
-## Klasör Yapısı
+## 📄 License
 
-```
-.
-├── app/                      # expo-router ekranları (dosya = route)
-│   ├── _layout.tsx           # Kök yerleşim (tema, providers)
-│   └── (tabs)/               # Alt tab bar grubu
-│       ├── _layout.tsx       # Tab bar tanımı (5 sekme)
-│       ├── index.tsx         # 🏠 Bugün Biz (ana ekran)
-│       ├── takvim.tsx        # 📅 Takvim (iskelet)
-│       ├── anilar.tsx        # 📸 Anılar (iskelet)
-│       ├── feyzi-ai.tsx      # 💬 Feyzi AI (iskelet)
-│       └── surprizler.tsx    # 🎁 Sürprizler (iskelet)
-├── components/
-│   ├── cards/                # Ana ekran kartları (5 adet)
-│   └── ui/                   # Ortak bileşenler (GradientCard, başlık, vb.)
-├── store/                    # Zustand store'ları (tema)
-├── services/                 # Dış servisler (Feyzi AI placeholder)
-├── constants/                # Tema renkleri + yardımcılar
-├── data/                     # Mock veri (mesajlar, sebepler, özel günler)
-├── global.css                # NativeWind giriş dosyası
-├── tailwind.config.js        # Tailwind/NativeWind teması
-└── app.json                  # Expo yapılandırması
-```
-
----
-
-## Tamamlananlar
-
-**1. Adım — İskelet**
-- [x] Expo + TypeScript + expo-router + NativeWind iskeleti
-- [x] Romantik tema (soft pembe #FF6B9D + lila #A06CD5), açık/koyu mod
-- [x] 5 sekmeli alt navigasyon + iskelet ekranlar
-- [x] Ana ekran 5 kart (mock veri ile çalışır)
-
-**2. Adım — Ortak Takvim** ✅
-- [x] Aylık takvim görünümü (`react-native-calendars`), kategori renginde noktalar
-- [x] Etkinlik ekle / düzenle / sil (alttan açılan form modalı)
-- [x] Renkli kategoriler: Tatil (mavi) · Buluşma (pembe) · Özel Gün (mor) · İş/Okul (gri)
-- [x] Hatırlatıcı (`expo-notifications`) — tarih/saatte bildirim
-- [x] Seçili günün etkinlik listesi (kart liste)
-- [x] "Bize Özel Günler" sekmesi — geri sayımlı liste
-- [x] Apple Takvim'e Aktar (`expo-calendar`)
-- [x] Yerel kalıcılık: Zustand + AsyncStorage (`store/calendarStore.ts`)
-
-**3. Adım — Anılar** ✅
-- [x] Anı ekle/düzenle: fotoğraf (`expo-image-picker` galeri/kamera) + tarih + not + konum
-- [x] Zaman tüneli (en yeni üstte) fotoğraf kartları
-- [x] "Bu gün ne olmuştu?" — geçmiş yıl eşleşmeleri ("Geçen yıl bugün…")
-- [x] Favoriler: kalp ile favorile, "Favoriler" filtresi
-- [x] Harita görünümü (`react-native-maps`) — konumlu anılar pin + önizleme
-- [x] Konum (`expo-location`) — "Konumumu kullan" + ters jeokodlama
-- [x] Anı detay ekranı (`app/ani/[id].tsx`): büyük foto, mini harita, düzenle/sil
-- [x] Yerel kalıcılık: `store/memoryStore.ts`
-
-> Notlar: Fotoğraflar şimdilik cihazdaki yerel URI olarak saklanır (sonra Supabase Storage'a taşınacak). `react-native-maps` ve `expo-image-picker`/kamera Expo Go'da sınırlıdır; tam test için **development build** önerilir. "Gizli notlar / belli tarihte açılan anılar" özelliği Bölüm 5 (Sürpriz Kutusu) ile gelecek.
-
-**4. Adım — Feyzi AI (metin sohbeti)** ✅
-- [x] OpenAI GPT-4o ile metin sohbeti (`services/feyziService.ts`, doğrudan fetch)
-- [x] Mesaj balonları (Feyzi gradyan / kullanıcı nötr), avatar, "Feyzi yazıyor..."
-- [x] 4 mod: Normal / Moral / Plan / Anı (Anı modu son anıları context'e ekler)
-- [x] Sesli & Video modları "Yakında" etiketiyle pasif
-- [x] Sohbet geçmişi kalıcı (`store/chatStore.ts`)
-- [x] API anahtarı: `.env` (`OPENAI_API_KEY`) → `app.config.js` extra → `expo-secure-store`
-- [x] Düzenlenebilir promptlar: `constants/feyziPrompts.ts`
-
-> Sesli mod (ElevenLabs) ve Video mod (D-ID) sonraki fazda eklenecek.
-
-**5. Adım — Sürpriz Kutusu** ✅
-- [x] Sürpriz ekle (admin): başlık, mesaj, foto (opsiyonel), açılma tipi, tarih
-- [x] Açılma tipleri: `date` (tarihte) · `sad` (kötü hissedince) · `miss` (özleyince) · `before_trip` (tatile 3 gün kala)
-- [x] Kilitli / açılabilir / açılmış kart durumları (gizemli koyu kart ↔ canlı gradyan)
-- [x] `react-native-reanimated` ile açılma animasyonu (scale + fade)
-- [x] Hızlı açma butonları: "Kötü hissediyorum 💙" / "Seni özledim 🥺"
-- [x] `before_trip` için `calendarStore`'dan en yakın "tatil" etkinliği okunur
-- [x] Yerel kalıcılık: `store/surpriseStore.ts`
-
-> "Gizli notlar / belli tarihte açılır" özelliği `date` tipli sürprizlerle karşılanır. Faz 2'de Supabase'e taşınınca admin (sen) eklediğinde sevgilinin telefonunda görünecek.
-
-## Sıradaki Adımlar
-
-1. **Feyzi AI — Sesli/Video** — ElevenLabs (TTS) + D-ID (konuşan video)
-2. **Backend** — Supabase (auth + postgres + storage); sürprizleri admin (sen) ekleyince sevgilinde görünmesi
-
----
-
-## API Anahtarları
-
-`.env.example` dosyasını `.env` olarak kopyalayıp anahtarlarını gir. `.env` dosyası git'e **dahil edilmez**.
-
-Feyzi AI sohbetinin çalışması için `.env` içine OpenAI anahtarını ekle:
-
-```
-OPENAI_API_KEY=sk-...
-```
-
-Bu anahtar `app.config.js` ile uygulamaya geçer ve ilk açılışta `expo-secure-store`'a yazılıp oradan okunur. `.env`'i değiştirdiğinde Metro'yu önbelleği temizleyerek yeniden başlat: `npx expo start -c`.
-
----
-
-## Özelleştirme İpuçları
-
-- **Sevme sebepleri**: `data/sevmeSebepleri.ts` (50+ hazır, istediğin gibi düzenle)
-- **Günün mesajları**: `data/gununMesajlari.ts`
-- **Özel günler** (yıldönümü, doğum günleri): `data/ozelGunler.ts` — tarihleri kendine göre güncelle
-- **Renkler**: `constants/theme.ts` ve `tailwind.config.js`
-- **Feyzi kişiliği & mod promptları**: `constants/feyziPrompts.ts` → `FEYZI_BASE_PERSONALITY` ve `MODE_PROMPTS`
+This is a personal portfolio project. No license is currently specified. Default copyright applies.

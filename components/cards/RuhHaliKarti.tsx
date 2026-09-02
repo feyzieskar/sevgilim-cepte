@@ -23,10 +23,7 @@ export function RuhHaliKarti() {
   const todayMoods = useMoodStore((s) => s.todayMoods);
   const partnerId = useMoodStore((s) => s.partnerId);
 
-  const benim = useMemo(
-    () => todayMoods.find((m) => m.createdBy === userId),
-    [todayMoods, userId]
-  );
+  const benim = useMemo(() => todayMoods.find((m) => m.createdBy === userId), [todayMoods, userId]);
   const partnerin = useMemo(
     () => (partnerId ? todayMoods.find((m) => m.createdBy === partnerId) : undefined),
     [todayMoods, partnerId]
@@ -64,15 +61,7 @@ export function RuhHaliKarti() {
   );
 }
 
-function EmojiKutu({
-  etiket,
-  emoji,
-  bos,
-}: {
-  etiket: string;
-  emoji?: string;
-  bos: string;
-}) {
+function EmojiKutu({ etiket, emoji, bos }: { etiket: string; emoji?: string; bos: string }) {
   const palet = usePalet();
 
   return (

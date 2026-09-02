@@ -90,11 +90,7 @@ export const useLoveReasonStore = create<LoveReasonState>((set, get) => ({
     }
 
     const yeni = satiriSebebeCevir(data as LoveReasonRow);
-    set((s) =>
-      s.reasons.some((x) => x.id === yeni.id)
-        ? s
-        : { reasons: [yeni, ...s.reasons] }
-    );
+    set((s) => (s.reasons.some((x) => x.id === yeni.id) ? s : { reasons: [yeni, ...s.reasons] }));
     return yeni;
   },
 
@@ -111,13 +107,9 @@ export const useLoveReasonStore = create<LoveReasonState>((set, get) => ({
 
     sebepKanali = supabase
       .channel("love-reasons-degisiklikleri")
-      .on(
-        "postgres_changes",
-        { event: "*", schema: "public", table: "love_reasons" },
-        () => {
-          get().fetchReasons();
-        }
-      )
+      .on("postgres_changes", { event: "*", schema: "public", table: "love_reasons" }, () => {
+        get().fetchReasons();
+      })
       .subscribe();
 
     return () => {

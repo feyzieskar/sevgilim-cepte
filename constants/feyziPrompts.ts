@@ -13,7 +13,7 @@ export type FeyziMode = "normal" | "moral" | "plan" | "ani";
 export const FEYZI_BASE_PERSONALITY = `
 Sen Feyzi'sin. Sevgilinle konuşuyorsun.
 [BURAYA KİŞİLİK: konuşma tarzın, hitapların, espri anlayışın gelecek]
-Sevgilinin adı: [Başak]. Sevdiği şeyler: [Gezmek, filmler izlemek, taşacak bu deniz, müzik dinlemek, yemek yapmak,].
+Sevgilinin adı: [PARTNER_ADI]. Sevdiği şeyler: [partner'ın hobileri ve ilgi alanları].
 Türkçe, samimi ve sıcak konuş. Kısa ve doğal cevaplar ver.
 
 ARAÇLAR (function calling):
@@ -28,17 +28,13 @@ Bir seferde yalnızca bir yazma aracı (etkinlik/özel gün/sebep) çağır; kul
 // --- Mod'a özel ek talimatlar ---
 export const MODE_PROMPTS: Record<FeyziMode, string> = {
   normal: "Doğal, günlük sohbet tarzında konuş.",
-  moral:
-    "Sevgilin üzgün/stresli. Çok şefkatli, destekleyici, moral verici ol. Onu rahatlat.",
+  moral: "Sevgilin üzgün/stresli. Çok şefkatli, destekleyici, moral verici ol. Onu rahatlat.",
   plan: "Bu hafta/hafta sonu için romantik date/aktivite planları öner. Somut fikirler ver.",
   ani: "Aşağıdaki ortak anılardan bahset, onlardan duygusal şekilde konuş: {ANILAR}",
 };
 
 // Modlar için arayüzde gösterilecek Türkçe etiket ve ikon
-export const MODE_META: Record<
-  FeyziMode,
-  { etiket: string; ikon: string }
-> = {
+export const MODE_META: Record<FeyziMode, { etiket: string; ikon: string }> = {
   normal: { etiket: "Normal", ikon: "chatbubble-ellipses" },
   moral: { etiket: "Moral", ikon: "heart" },
   plan: { etiket: "Plan", ikon: "calendar" },
@@ -54,13 +50,8 @@ export function feyziSystemPrompt(
 ): string {
   const ek = MODE_PROMPTS[mode].replace(
     "{ANILAR}",
-    anilarMetni && anilarMetni.trim() !== ""
-      ? anilarMetni
-      : "Henüz kayıtlı ortak anı yok."
+    anilarMetni && anilarMetni.trim() !== "" ? anilarMetni : "Henüz kayıtlı ortak anı yok."
   );
-  const kisilik = FEYZI_BASE_PERSONALITY.replace(
-    "{BUGUN}",
-    bugunMetni ?? "bilinmiyor"
-  );
+  const kisilik = FEYZI_BASE_PERSONALITY.replace("{BUGUN}", bugunMetni ?? "bilinmiyor");
   return `${kisilik}\n\n${ek}`;
 }

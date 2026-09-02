@@ -66,10 +66,7 @@ export default function StreakEkrani() {
           if (!secim?.base64) return;
           const sonuc = await sendStreakPhoto(secim.uri, secim.base64);
           if (!sonuc) {
-            Alert.alert(
-              "Gönderilemedi",
-              "Fotoğraf yüklenirken bir sorun oluştu. Tekrar dene."
-            );
+            Alert.alert("Gönderilemedi", "Fotoğraf yüklenirken bir sorun oluştu. Tekrar dene.");
           }
         },
       },
@@ -80,10 +77,7 @@ export default function StreakEkrani() {
           if (!secim?.base64) return;
           const sonuc = await sendStreakPhoto(secim.uri, secim.base64);
           if (!sonuc) {
-            Alert.alert(
-              "Gönderilemedi",
-              "Fotoğraf yüklenirken bir sorun oluştu. Tekrar dene."
-            );
+            Alert.alert("Gönderilemedi", "Fotoğraf yüklenirken bir sorun oluştu. Tekrar dene.");
           }
         },
       },
@@ -108,15 +102,10 @@ export default function StreakEkrani() {
   })();
 
   const streakSifirMi =
-    (streak?.currentStreak ?? 0) === 0 &&
-    !!partnerId &&
-    history.some((g) => g.tamamlandi);
+    (streak?.currentStreak ?? 0) === 0 && !!partnerId && history.some((g) => g.tamamlandi);
 
   return (
-    <SafeAreaView
-      edges={["top"]}
-      style={{ flex: 1, backgroundColor: palet.arkaplan }}
-    >
+    <SafeAreaView edges={["top"]} style={{ flex: 1, backgroundColor: palet.arkaplan }}>
       <ScrollView
         contentContainerStyle={{ padding: 20, paddingBottom: 110 }}
         showsVerticalScrollIndicator={false}
@@ -129,10 +118,7 @@ export default function StreakEkrani() {
           />
         }
       >
-        <EkranBasligi
-          baslik="Streak"
-          altBaslik="Her gün bir fotoğraf, birlikte büyüyen seri 🔥"
-        />
+        <EkranBasligi baslik="Streak" altBaslik="Her gün bir fotoğraf, birlikte büyüyen seri 🔥" />
 
         {!yuklendiMi && loading ? (
           <View className="items-center py-16">
@@ -152,15 +138,10 @@ export default function StreakEkrani() {
               <View
                 className="rounded-2xl px-4 py-3"
                 style={{
-                  backgroundColor: benGonderdim
-                    ? `${palet.secondary}18`
-                    : "#FF6B3518",
+                  backgroundColor: benGonderdim ? `${palet.secondary}18` : "#FF6B3518",
                 }}
               >
-                <Text
-                  className="text-center font-semibold"
-                  style={{ color: palet.metin }}
-                >
+                <Text className="text-center font-semibold" style={{ color: palet.metin }}>
                   {uyariMetni}
                 </Text>
               </View>
@@ -186,16 +167,8 @@ export default function StreakEkrani() {
                 Bugünkü Durum
               </Text>
               <View className="flex-row gap-3">
-                <DurumKarti
-                  etiket="Sen"
-                  tamam={benGonderdim}
-                  uri={benimFoto?.photoUrl}
-                />
-                <DurumKarti
-                  etiket="Partner"
-                  tamam={partnerGonderdi}
-                  uri={partnerFoto?.photoUrl}
-                />
+                <DurumKarti etiket="Sen" tamam={benGonderdim} uri={benimFoto?.photoUrl} />
+                <DurumKarti etiket="Partner" tamam={partnerGonderdi} uri={partnerFoto?.photoUrl} />
               </View>
             </View>
 
@@ -239,10 +212,7 @@ export default function StreakEkrani() {
 
             {/* Geçmiş */}
             <View>
-              <Text
-                className="mb-3 text-lg font-bold"
-                style={{ color: palet.metin }}
-              >
+              <Text className="mb-3 text-lg font-bold" style={{ color: palet.metin }}>
                 Geçmiş
               </Text>
               <StreakGecmisi history={history} userId={userId} />
@@ -254,15 +224,7 @@ export default function StreakEkrani() {
   );
 }
 
-function DurumKarti({
-  etiket,
-  tamam,
-  uri,
-}: {
-  etiket: string;
-  tamam: boolean;
-  uri?: string;
-}) {
+function DurumKarti({ etiket, tamam, uri }: { etiket: string; tamam: boolean; uri?: string }) {
   const palet = usePalet();
 
   return (
@@ -288,9 +250,7 @@ function DurumKarti({
             borderRadius: RADIUS.md,
           }}
         >
-          <Text style={{ color: palet.metinIkincil }}>
-            {tamam ? "Gönderildi" : "Bekleniyor"}
-          </Text>
+          <Text style={{ color: palet.metinIkincil }}>{tamam ? "Gönderildi" : "Bekleniyor"}</Text>
         </View>
       )}
     </View>

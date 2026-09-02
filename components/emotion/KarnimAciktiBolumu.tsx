@@ -8,11 +8,7 @@ import { ActivityIndicator, Alert, Pressable, Text, View } from "react-native";
 
 import { SonIsteklerListesi } from "@/components/emotion/SonIsteklerListesi";
 import { GRADIENTS, RADIUS, SHADOWS } from "@/constants/theme";
-import {
-  ACIKLIK_SECENEKLERI,
-  AciklikSeviyesi,
-  aciklikEtiketi,
-} from "@/data/yemekOnerileri";
+import { ACIKLIK_SECENEKLERI, AciklikSeviyesi, aciklikEtiketi } from "@/data/yemekOnerileri";
 import { useEmotionStore } from "@/store/emotionStore";
 import { usePalet } from "@/store/useThemeStore";
 
@@ -114,10 +110,7 @@ export function KarnimAciktiBolumu() {
           <Text className="text-sm font-semibold" style={{ color: palet.metinIkincil }}>
             {aciklikEtiketi(sonOneri.seviye)} — sana önerim:
           </Text>
-          <Text
-            className="mt-2 text-center text-xl font-bold"
-            style={{ color: palet.primary }}
-          >
+          <Text className="mt-2 text-center text-xl font-bold" style={{ color: palet.primary }}>
             {sonOneri.yemek}
           </Text>
           <Text className="mt-3 text-center text-xs" style={{ color: palet.metinIkincil }}>

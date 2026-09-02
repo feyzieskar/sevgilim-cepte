@@ -55,9 +55,6 @@ export const ETKINLIKLER: Etkinlik[] = [
 ];
 
 // Belirli bir güne ait etkinlikleri döndürür.
-export function gununEtkinlikleri(
-  tarihISO: string,
-  liste: Etkinlik[] = ETKINLIKLER
-): Etkinlik[] {
+export function gununEtkinlikleri(tarihISO: string, liste: Etkinlik[] = ETKINLIKLER): Etkinlik[] {
   return liste.filter((e) => e.tarih === tarihISO);
 }

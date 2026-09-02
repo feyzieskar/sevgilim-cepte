@@ -1,21 +1,24 @@
 // ====================================================================
-// FEYZİ SERVİSİ (OpenAI GPT-4o + Function Calling)
+// FEYZİ SERVİSİ (Supabase Edge Function → OpenAI GPT-4o + Function Calling)
 // ====================================================================
 // Sohbet + tools: Feyzi takvim/özel gün/sebep ekleyebilir, anı hatırlatır,
 // en yakın özel günü söyler. Kalıcı yazma işlemleri onay bekler.
+//
+// GÜVENLİK: OpenAI istekleri Supabase Edge Function üzerinden yapılır.
+// API anahtarı istemci uygulamada bulunmaz; yalnızca sunucu tarafındadır.
 // ====================================================================
 
 import { EventCategory } from "@/constants/kategoriler";
 import { FeyziMode, feyziSystemPrompt } from "@/constants/feyziPrompts";
 import { bugunISO, tarihKisa, tarihUzun } from "@/constants/tarih";
 import { enYakinOzelGun } from "@/data/ozelGunler";
-import { getOpenAiKey } from "@/services/apiKeys";
+import { supabase } from "@/lib/supabase";
+import { isValidDate, isValidTime, clampString } from "@/lib/validation";
 import { useCalendarStore } from "@/store/calendarStore";
 import { useLoveReasonStore } from "@/store/loveReasonStore";
 import { useMemoryStore } from "@/store/memoryStore";
 import { useOzelGunStore } from "@/store/ozelGunStore";
 
-const API_URL = "https://api.openai.com/v1/chat/completions";
 const MAX_TOOL_DONGUSU = 4;
 
 // --- API mesaj tipleri ---
@@ -40,11 +43,7 @@ interface ApiToolCall {
 }
 
 // Yazma araçları — kullanıcı onayı gerekir
-const YAZMA_ARACLARI = new Set([
-  "takvimeEtkinlikEkle",
-  "ozelGunEkle",
-  "sevmeSebebiEkle",
-]);
+const YAZMA_ARACLARI = new Set(["takvimeEtkinlikEkle", "ozelGunEkle", "sevmeSebebiEkle"]);
 
 export type BilgiKarti = {
   metin: string; // örn. "✅ Takvime eklendi"
@@ -60,8 +59,7 @@ export type BekleyenOnay = {
 };
 
 export type FeyziYanit =
-  | { tur: "cevap"; metin: string; bilgiler?: BilgiKarti[] }
-  | { tur: "onay"; onay: BekleyenOnay };
+  { tur: "cevap"; metin: string; bilgiler?: BilgiKarti[] } | { tur: "onay"; onay: BekleyenOnay };
 
 export type FeyziHataKodu = "NO_KEY" | "API" | "AG";
 
@@ -108,8 +106,7 @@ const FEYZI_TOOLS = [
     type: "function" as const,
     function: {
       name: "ozelGunEkle",
-      description:
-        "Yılda bir tekrar eden özel gün ekler (doğum günü, yıldönümü vb.).",
+      description: "Yılda bir tekrar eden özel gün ekler (doğum günü, yıldönümü vb.).",
       parameters: {
         type: "object",
         properties: {
@@ -183,21 +180,21 @@ function kategoriEtiket(cat: string): string {
 export function aracOzeti(name: string, args: Record<string, unknown>): string {
   switch (name) {
     case "takvimeEtkinlikEkle": {
-      const title = String(args.title ?? "");
+      const title = clampString(String(args.title ?? ""), 100);
       const date = String(args.date ?? "");
       const time = args.time ? ` ${args.time}` : "";
       const cat = kategoriEtiket(String(args.category ?? "bulusma"));
       return `Takvime ekle: "${title}" — ${date}${time} (${cat})`;
     }
     case "ozelGunEkle": {
-      const title = String(args.title ?? "");
+      const title = clampString(String(args.title ?? ""), 100);
       const emoji = String(args.emoji ?? "💕");
       const gun = Number(args.gun);
       const ay = Number(args.ay);
       return `Özel gün ekle: ${emoji} ${title} (${gun}.${ay})`;
     }
     case "sevmeSebebiEkle":
-      return `Sevme sebebi ekle: "${String(args.text ?? "").slice(0, 80)}"`;
+      return `Sevme sebebi ekle: "${clampString(String(args.text ?? ""), 80)}"`;
     default:
       return name;
   }
@@ -220,14 +217,22 @@ export function aracBasariMetni(name: string): string {
 // --- Araç uygulamaları ---
 
 async function calistirTakvim(args: Record<string, unknown>): Promise<string> {
-  const title = String(args.title ?? "").trim();
+  const title = clampString(String(args.title ?? "").trim(), 200);
   const date = String(args.date ?? "").trim();
   const time = args.time ? String(args.time).trim() : undefined;
-  const category = (String(args.category ?? "bulusma") as EventCategory);
-  const note = args.note ? String(args.note).trim() : undefined;
+  const category = String(args.category ?? "bulusma") as EventCategory;
+  const note = args.note ? clampString(String(args.note).trim(), 500) : undefined;
 
   if (!title || !date) {
     return JSON.stringify({ ok: false, hata: "Başlık ve tarih zorunlu." });
+  }
+
+  if (!isValidDate(date)) {
+    return JSON.stringify({ ok: false, hata: `Geçersiz tarih: ${date}` });
+  }
+
+  if (time && !isValidTime(time)) {
+    return JSON.stringify({ ok: false, hata: `Geçersiz saat formatı: ${time}` });
   }
 
   const gecerli: EventCategory[] = ["tatil", "bulusma", "ozel_gun", "is_okul"];
@@ -256,13 +261,19 @@ async function calistirTakvim(args: Record<string, unknown>): Promise<string> {
 }
 
 async function calistirOzelGun(args: Record<string, unknown>): Promise<string> {
-  const title = String(args.title ?? "").trim();
-  const emoji = String(args.emoji ?? "💕").trim() || "💕";
+  const title = clampString(String(args.title ?? "").trim(), 200);
+  const emoji = clampString(String(args.emoji ?? "💕").trim(), 10) || "💕";
   const gun = Number(args.gun);
   const ay = Number(args.ay);
 
   if (!title || !gun || !ay || gun < 1 || gun > 31 || ay < 1 || ay > 12) {
     return JSON.stringify({ ok: false, hata: "Geçersiz özel gün bilgisi." });
+  }
+
+  // Ay-gün kombinasyonu geçerliliği (ör. 31 Şubat engelle)
+  const testDate = new Date(2024, ay - 1, gun); // 2024 artık yıl
+  if (testDate.getMonth() !== ay - 1 || testDate.getDate() !== gun) {
+    return JSON.stringify({ ok: false, hata: `Geçersiz gün/ay kombinasyonu: ${gun}.${ay}` });
   }
 
   const yeni = await useOzelGunStore.getState().addOzelGun({
@@ -285,10 +296,8 @@ async function calistirOzelGun(args: Record<string, unknown>): Promise<string> {
   });
 }
 
-async function calistirSevmeSebebi(
-  args: Record<string, unknown>
-): Promise<string> {
-  const text = String(args.text ?? "").trim();
+async function calistirSevmeSebebi(args: Record<string, unknown>): Promise<string> {
+  const text = clampString(String(args.text ?? "").trim(), 500);
   if (!text) {
     return JSON.stringify({ ok: false, hata: "Sebep metni boş olamaz." });
   }
@@ -306,10 +315,12 @@ function calistirAniHatirlat(args: Record<string, unknown>): string {
 
   if (args.tarih) {
     const iso = String(args.tarih);
-    const [, mo, g] = iso.split("-").map(Number);
-    if (mo && g) {
-      const hedef = new Date(2000, mo - 1, g);
-      anilar = store.getMemoriesByDate(hedef);
+    if (isValidDate(iso)) {
+      const [, mo, g] = iso.split("-").map(Number);
+      if (mo && g) {
+        const hedef = new Date(2000, mo - 1, g);
+        anilar = store.getMemoriesByDate(hedef);
+      }
     }
   }
 
@@ -369,10 +380,7 @@ function calistirSonrakiOzelGun(): string {
 }
 
 /** Onaysız (okuma) araçları hemen çalıştırır */
-function calistirOkumaAraci(
-  name: string,
-  args: Record<string, unknown>
-): string {
+function calistirOkumaAraci(name: string, args: Record<string, unknown>): string {
   switch (name) {
     case "aniHatirlat":
       return calistirAniHatirlat(args);
@@ -413,6 +421,10 @@ export async function yazmaAraciniUygula(
   return { sonuc, bilgi };
 }
 
+/**
+ * OpenAI'ye Edge Function üzerinden istek gönderir.
+ * API anahtarı sunucu tarafında kalır; istemcide bulunmaz.
+ */
 async function openaiCagir(apiMesajlari: ApiMesaj[]): Promise<{
   message: {
     role: string;
@@ -420,38 +432,24 @@ async function openaiCagir(apiMesajlari: ApiMesaj[]): Promise<{
     tool_calls?: ApiToolCall[];
   };
 }> {
-  const key = await getOpenAiKey();
-  if (!key) {
-    throw new FeyziError("NO_KEY", "OpenAI API anahtarı bulunamadı.");
+  const { data, error } = await supabase.functions.invoke("feyzi-chat", {
+    body: {
+      messages: apiMesajlari,
+      tools: FEYZI_TOOLS,
+      tool_choice: "auto",
+    },
+  });
+
+  if (error) {
+    throw new FeyziError("API", "AI servisine bağlanılamadı.");
   }
 
-  let res: Response;
-  try {
-    res = await fetch(API_URL, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${key}`,
-      },
-      body: JSON.stringify({
-        model: "gpt-4o",
-        messages: apiMesajlari,
-        tools: FEYZI_TOOLS,
-        tool_choice: "auto",
-        temperature: 0.8,
-        max_tokens: 600,
-      }),
-    });
-  } catch {
-    throw new FeyziError("AG", "Bağlantı kurulamadı.");
+  // Edge Function hata döndüyse
+  if (data?.error) {
+    throw new FeyziError("API", data.error as string);
   }
 
-  if (!res.ok) {
-    throw new FeyziError("API", `OpenAI hatası: ${res.status}`);
-  }
-
-  const veri = await res.json();
-  const message = veri?.choices?.[0]?.message;
+  const message = data?.choices?.[0]?.message;
   if (!message) {
     throw new FeyziError("API", "Boş cevap döndü.");
   }
@@ -486,21 +484,14 @@ async function toolDongusu(
       tool_calls: toolCalls,
     });
 
-    const okumalar = toolCalls.filter(
-      (t) => !YAZMA_ARACLARI.has(t.function.name)
-    );
-    const yazmalar = toolCalls.filter((t) =>
-      YAZMA_ARACLARI.has(t.function.name)
-    );
+    const okumalar = toolCalls.filter((t) => !YAZMA_ARACLARI.has(t.function.name));
+    const yazmalar = toolCalls.filter((t) => YAZMA_ARACLARI.has(t.function.name));
 
     // Okuma araçlarını hemen çalıştır
     for (const tc of okumalar) {
       let args: Record<string, unknown> = {};
       try {
-        args = JSON.parse(tc.function.arguments || "{}") as Record<
-          string,
-          unknown
-        >;
+        args = JSON.parse(tc.function.arguments || "{}") as Record<string, unknown>;
       } catch {
         args = {};
       }
@@ -531,10 +522,7 @@ async function toolDongusu(
       const yazma = yazmalar[0];
       let args: Record<string, unknown> = {};
       try {
-        args = JSON.parse(yazma.function.arguments || "{}") as Record<
-          string,
-          unknown
-        >;
+        args = JSON.parse(yazma.function.arguments || "{}") as Record<string, unknown>;
       } catch {
         args = {};
       }
@@ -581,9 +569,7 @@ export async function feyziyeSor(
  * Kullanıcı onayladıktan sonra yazma aracını uygular ve Feyzi'nin
  * doğal cevabını alır.
  */
-export async function onaySonrasiDevam(
-  onay: BekleyenOnay
-): Promise<FeyziYanit> {
+export async function onaySonrasiDevam(onay: BekleyenOnay): Promise<FeyziYanit> {
   const { sonuc, bilgi } = await yazmaAraciniUygula(onay.toolName, onay.args);
   const bilgiler: BilgiKarti[] = bilgi ? [bilgi] : [];
 

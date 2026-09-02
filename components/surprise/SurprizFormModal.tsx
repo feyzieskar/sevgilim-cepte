@@ -51,11 +51,7 @@ interface SurprizFormModalProps {
   onKaydet: (veri: SurprizFormVerisi) => void | Promise<void>;
 }
 
-export function SurprizFormModal({
-  visible,
-  onClose,
-  onKaydet,
-}: SurprizFormModalProps) {
+export function SurprizFormModal({ visible, onClose, onKaydet }: SurprizFormModalProps) {
   const palet = usePalet();
   const mod = useThemeStore((s) => s.mod);
 
@@ -84,8 +80,7 @@ export function SurprizFormModal({
   }, [visible]);
 
   // Seçili tipin tarih gerektirip gerektirmediği
-  const tarihGerekir =
-    UNLOCK_LISTESI.find((t) => t.tip === unlockType)?.tarihGerekir ?? false;
+  const tarihGerekir = UNLOCK_LISTESI.find((t) => t.tip === unlockType)?.tarihGerekir ?? false;
 
   const fotografSec = async () => {
     const foto = await galeridenSec();
@@ -237,11 +232,7 @@ export function SurprizFormModal({
                         borderColor: aktif ? t.renk : palet.kenarlik,
                       }}
                     >
-                      <Ionicons
-                        name={t.ikon}
-                        size={15}
-                        color={aktif ? "#FFFFFF" : t.renk}
-                      />
+                      <Ionicons name={t.ikon} size={15} color={aktif ? "#FFFFFF" : t.renk} />
                       <Text
                         className="ml-1.5 text-sm font-semibold"
                         style={{ color: aktif ? "#FFFFFF" : palet.metin }}
@@ -281,8 +272,9 @@ export function SurprizFormModal({
 
                   {unlockType === "before_trip" ? (
                     <Text className="mt-1 text-xs" style={{ color: palet.metinIkincil }}>
-                      Not: Bu tip, takvimdeki en yakın "tatil" etkinliğine 3 gün
-                      kala otomatik açılabilir olur.
+                      {
+                        'Not: Bu tip, takvimdeki en yakın "tatil" etkinliğine 3 gün kala otomatik açılabilir olur.'
+                      }
                     </Text>
                   ) : null}
 
@@ -333,9 +325,7 @@ export function SurprizFormModal({
                 {kaydediliyor ? (
                   <View className="flex-row items-center">
                     <ActivityIndicator size="small" color="#FFFFFF" />
-                    <Text className="ml-2 text-lg font-bold text-white">
-                      Kaydediliyor…
-                    </Text>
+                    <Text className="ml-2 text-lg font-bold text-white">Kaydediliyor…</Text>
                   </View>
                 ) : (
                   <Text className="text-lg font-bold text-white">Sürprizi Sakla</Text>

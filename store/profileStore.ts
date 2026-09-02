@@ -28,6 +28,8 @@ interface ProfileState {
   yuklendiMi: boolean;
 
   fetchProfiller: () => Promise<void>;
+  createPairingCode: () => Promise<{ basarili: boolean; kod?: string; hata?: string }>;
+  redeemPairingCode: (kod: string) => Promise<{ basarili: boolean; hata?: string }>;
 }
 
 function satiriProfilCevir(r: ProfilRow): KullaniciProfil {
@@ -85,9 +87,7 @@ export const useProfileStore = create<ProfileState>((set) => ({
       return;
     }
 
-    const partnerId =
-      (benim as ProfilRow | null)?.partner_id ??
-      (await partnerIdBul(userId));
+    const partnerId = (benim as ProfilRow | null)?.partner_id ?? (await partnerIdBul(userId));
 
     let partnerProfil: KullaniciProfil | null = null;
     if (partnerId) {
@@ -110,5 +110,43 @@ export const useProfileStore = create<ProfileState>((set) => ({
       loading: false,
       yuklendiMi: true,
     });
+  },
+
+  createPairingCode: async () => {
+    try {
+      const { data, error } = await supabase.rpc("create_pairing_code");
+      if (error) {
+        return { basarili: false, hata: error.message };
+      }
+      return { basarili: true, kod: data as string };
+    } catch (e) {
+      return {
+        basarili: false,
+        hata: e instanceof Error ? e.message : "Eşleşme kodu oluşturulamadı.",
+      };
+    }
+  },
+
+  redeemPairingCode: async (kod: string) => {
+    try {
+      const { data, error } = await supabase.rpc("redeem_pairing_code", {
+        p_code: kod.trim(),
+      });
+      if (error) {
+        return { basarili: false, hata: error.message };
+      }
+      const sonuc = data as { ok: boolean; error?: string; partner_id?: string };
+      if (!sonuc.ok) {
+        return { basarili: false, hata: sonuc.error ?? "Kod geçersiz veya süresi dolmuş." };
+      }
+      // Eşleşme başarılı, profilleri yenile
+      await useProfileStore.getState().fetchProfiller();
+      return { basarili: true };
+    } catch (e) {
+      return {
+        basarili: false,
+        hata: e instanceof Error ? e.message : "Kod doğrulanamadı.",
+      };
+    }
   },
 }));

@@ -54,14 +54,9 @@ interface CalendarState {
   // Supabase'den tüm etkinlikleri çeker (RLS sayesinde ben + partner)
   fetchEvents: () => Promise<void>;
   // Yeni etkinlik ekler ve oluşturulan kaydı döndürür (hata olursa null)
-  addEvent: (
-    girdi: Omit<CalendarEvent, "id" | "notificationId">
-  ) => Promise<CalendarEvent | null>;
+  addEvent: (girdi: Omit<CalendarEvent, "id" | "notificationId">) => Promise<CalendarEvent | null>;
   // Var olan etkinliği günceller (kısmi alanlarla)
-  updateEvent: (
-    id: string,
-    degisiklikler: Partial<CalendarEvent>
-  ) => Promise<void>;
+  updateEvent: (id: string, degisiklikler: Partial<CalendarEvent>) => Promise<void>;
   // Etkinliği siler
   deleteEvent: (id: string) => Promise<void>;
   // Cihaz-yerel hatırlatıcı kimliğini ayarlar/temizler
@@ -86,20 +81,14 @@ async function bildirimHaritasiOku(): Promise<Record<string, string>> {
 
 async function bildirimHaritasiYaz(harita: Record<string, string>) {
   try {
-    await AsyncStorage.setItem(
-      BILDIRIM_HARITASI_ANAHTARI,
-      JSON.stringify(harita)
-    );
+    await AsyncStorage.setItem(BILDIRIM_HARITASI_ANAHTARI, JSON.stringify(harita));
   } catch {
     // Yerel yazım hatası kritik değil; sessizce geç
   }
 }
 
 // DB satırını uygulama modeline çevirir (yerel bildirim kimliğini ekler)
-function satiriEventeCevir(
-  r: EventRow,
-  harita: Record<string, string>
-): CalendarEvent {
+function satiriEventeCevir(r: EventRow, harita: Record<string, string>): CalendarEvent {
   return {
     id: r.id,
     title: r.title,
@@ -114,9 +103,7 @@ function satiriEventeCevir(
 
 // Uygulama modelindeki değişiklikleri DB sütunlarına (snake_case) çevirir.
 // notificationId DB'ye yazılmaz (cihaz-yerel).
-function degisiklikleriRowaCevir(
-  d: Partial<CalendarEvent>
-): Record<string, unknown> {
+function degisiklikleriRowaCevir(d: Partial<CalendarEvent>): Record<string, unknown> {
   const row: Record<string, unknown> = {};
   if (d.title !== undefined) row.title = d.title;
   if (d.date !== undefined) row.date = d.date;
@@ -158,9 +145,7 @@ export const useCalendarStore = create<CalendarState>((set, get) => ({
     }
 
     const harita = await bildirimHaritasiOku();
-    const events = (data as EventRow[]).map((r) =>
-      satiriEventeCevir(r, harita)
-    );
+    const events = (data as EventRow[]).map((r) => satiriEventeCevir(r, harita));
     set({ events, loading: false, yuklendiMi: true });
   },
 
@@ -206,9 +191,7 @@ export const useCalendarStore = create<CalendarState>((set, get) => ({
 
     // Yerel state'i iyimser güncelle
     set((s) => ({
-      events: s.events.map((e) =>
-        e.id === id ? { ...e, ...degisiklikler } : e
-      ),
+      events: s.events.map((e) => (e.id === id ? { ...e, ...degisiklikler } : e)),
     }));
   },
 
@@ -248,14 +231,10 @@ export const useCalendarStore = create<CalendarState>((set, get) => ({
 
     etkinlikKanali = supabase
       .channel("events-degisiklikleri")
-      .on(
-        "postgres_changes",
-        { event: "*", schema: "public", table: "events" },
-        () => {
-          // Her değişiklikte listeyi tazele (basit ve güvenli)
-          get().fetchEvents();
-        }
-      )
+      .on("postgres_changes", { event: "*", schema: "public", table: "events" }, () => {
+        // Her değişiklikte listeyi tazele (basit ve güvenli)
+        get().fetchEvents();
+      })
       .subscribe();
 
     return () => {

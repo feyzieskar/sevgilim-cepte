@@ -28,10 +28,7 @@ export function BucketKutlama({ visible, baslik, onKapat }: BucketKutlamaProps) 
   useEffect(() => {
     if (!visible) return;
     olcek.value = withRepeat(
-      withSequence(
-        withTiming(1.1, { duration: 400 }),
-        withTiming(1, { duration: 400 })
-      ),
+      withSequence(withTiming(1.1, { duration: 400 }), withTiming(1, { duration: 400 })),
       3,
       true
     );
@@ -62,16 +59,10 @@ export function BucketKutlama({ visible, baslik, onKapat }: BucketKutlamaProps) 
           ]}
         >
           <Text style={{ fontSize: 48 }}>🎉✨🎊</Text>
-          <Text
-            className="mt-4 text-center text-2xl font-bold"
-            style={{ color: palet.metin }}
-          >
+          <Text className="mt-4 text-center text-2xl font-bold" style={{ color: palet.metin }}>
             Hayal Gerçekleşti!
           </Text>
-          <Text
-            className="mt-2 text-center text-base"
-            style={{ color: palet.metinIkincil }}
-          >
+          <Text className="mt-2 text-center text-base" style={{ color: palet.metinIkincil }}>
             {baslik}
           </Text>
         </Animated.View>

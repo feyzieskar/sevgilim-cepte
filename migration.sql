@@ -635,11 +635,16 @@ alter publication supabase_realtime add table public.bucket_list;
 -- Aşağıdaki kullanıcıların kayıtları geldikten sonra e-postalarını
 -- yazıp bu bloğu bir kez çalıştır; iki profili karşılıklı eşler.
 --
+-- LEGACY PARTNER PAIRING (manual SQL — replaced by pairing_codes system)
+-- After both users are registered, replace the placeholder emails below
+-- with the actual account emails and run this block once.
+--
+-- For new setups, use the in-app pairing system instead.
  do $$
  declare ben uuid; sevgilim uuid;
  begin
-   select id into ben      from auth.users where email = 'feyziekar@mail.com';
-   select id into sevgilim from auth.users where email = 'basakispekter@mail.com';
+   select id into ben      from auth.users where email = 'your-email@example.com';
+   select id into sevgilim from auth.users where email = 'partner-email@example.com';
    update public.profiles set partner_id = sevgilim where id = ben;
    update public.profiles set partner_id = ben      where id = sevgilim;
  end $$;

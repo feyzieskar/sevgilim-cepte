@@ -30,7 +30,17 @@ yarn-error.*
 .env
 .env.local
 .env.*.local
+.env.*
+!.env.example
 
 # EAS
 ios/
 android/
+
+# Test
+coverage/
+test-results/
+
+# Editör
+.cursor/
+.vscode/

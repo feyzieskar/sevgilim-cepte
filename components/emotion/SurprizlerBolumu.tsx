@@ -101,9 +101,7 @@ export function SurprizlerBolumu() {
             style={{ backgroundColor: "#5B9BD5", ...SHADOWS.yumusak }}
           >
             <Text className="text-2xl">💙</Text>
-            <Text className="mt-1 text-center text-sm font-bold text-white">
-              Kötü hissediyorum
-            </Text>
+            <Text className="mt-1 text-center text-sm font-bold text-white">Kötü hissediyorum</Text>
           </Pressable>
           <Pressable
             onPress={() => hizliAc("miss")}
@@ -111,9 +109,7 @@ export function SurprizlerBolumu() {
             style={{ backgroundColor: palet.primary, ...SHADOWS.yumusak }}
           >
             <Text className="text-2xl">🥺</Text>
-            <Text className="mt-1 text-center text-sm font-bold text-white">
-              Seni özledim
-            </Text>
+            <Text className="mt-1 text-center text-sm font-bold text-white">Seni özledim</Text>
           </Pressable>
         </View>
 
@@ -127,8 +123,7 @@ export function SurprizlerBolumu() {
               Henüz bir sürpriz yok
             </Text>
             <Text className="mt-2 text-center" style={{ color: palet.metinIkincil }}>
-              Aşağıdaki + butonuna dokunarak sevdiğin için gizli bir sürpriz
-              saklayabilirsin.
+              Aşağıdaki + butonuna dokunarak sevdiğin için gizli bir sürpriz saklayabilirsin.
             </Text>
           </View>
         ) : (
@@ -154,11 +149,7 @@ export function SurprizlerBolumu() {
         <Ionicons name="add" size={28} color="#FFFFFF" />
       </Pressable>
 
-      <SurprizFormModal
-        visible={modalAcik}
-        onClose={() => setModalAcik(false)}
-        onKaydet={kaydet}
-      />
+      <SurprizFormModal visible={modalAcik} onClose={() => setModalAcik(false)} onKaydet={kaydet} />
     </View>
   );
 }

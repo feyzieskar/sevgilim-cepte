@@ -36,11 +36,7 @@ export function OzelGunKarti() {
 
   // 0 gün kaldıysa "Bugün!" yazısı daha anlamlı
   const kalanMetni =
-    yakin.kalan === 0
-      ? "Bugün! 🎉"
-      : yakin.kalan === 1
-        ? "Yarın 💫"
-        : `${yakin.kalan} gün`;
+    yakin.kalan === 0 ? "Bugün! 🎉" : yakin.kalan === 1 ? "Yarın 💫" : `${yakin.kalan} gün`;
 
   return (
     <GradientCard gradient gradientTipi="romantik">

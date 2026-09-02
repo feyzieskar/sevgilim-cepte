@@ -20,19 +20,11 @@ interface YakindaEkraniProps {
   mesaj: string;
 }
 
-export function YakindaEkrani({
-  baslik,
-  altBaslik,
-  ikon: Ikon,
-  mesaj,
-}: YakindaEkraniProps) {
+export function YakindaEkrani({ baslik, altBaslik, ikon: Ikon, mesaj }: YakindaEkraniProps) {
   const palet = usePalet();
 
   return (
-    <SafeAreaView
-      edges={["top"]}
-      style={{ flex: 1, backgroundColor: palet.arkaplan }}
-    >
+    <SafeAreaView edges={["top"]} style={{ flex: 1, backgroundColor: palet.arkaplan }}>
       <View className="px-5 pt-2">
         <EkranBasligi baslik={baslik} altBaslik={altBaslik} geriDugmesi />
       </View>
@@ -52,10 +44,7 @@ export function YakindaEkrani({
           >
             <Ikon size={38} color={palet.primary} strokeWidth={2.2} />
           </View>
-          <Text
-            className="mt-5 text-center text-2xl font-bold"
-            style={{ color: palet.metin }}
-          >
+          <Text className="mt-5 text-center text-2xl font-bold" style={{ color: palet.metin }}>
             Yakında burada
           </Text>
           <Text

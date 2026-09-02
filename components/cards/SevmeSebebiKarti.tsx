@@ -28,23 +28,16 @@ export function SevmeSebebiKarti() {
   );
 
   // Varsayılan: bugüne karşılık gelen sebep
-  const [sebep, setSebep] = useState(
-    () => gununElemaniniSec(SEVME_SEBEPLERI) ?? ""
-  );
+  const [sebep, setSebep] = useState(() => gununElemaniniSec(SEVME_SEBEPLERI) ?? "");
 
   const yeniSebep = () => {
     if (tumSebepler.length === 0) return;
-    const rastgele =
-      tumSebepler[Math.floor(Math.random() * tumSebepler.length)];
+    const rastgele = tumSebepler[Math.floor(Math.random() * tumSebepler.length)];
     setSebep(rastgele);
   };
 
   return (
-    <GradientCard
-      gradient
-      gradientTipi="gunbatimi"
-      onPress={() => router.push("/sevme-sebepleri")}
-    >
+    <GradientCard gradient gradientTipi="gunbatimi" onPress={() => router.push("/sevme-sebepleri")}>
       <View className="flex-row items-center justify-between">
         <Text
           className="text-sm font-semibold uppercase text-white"
@@ -72,9 +65,7 @@ export function SevmeSebebiKarti() {
         </View>
       </View>
 
-      <Text className="mt-3 text-xl font-semibold leading-7 text-white">
-        {sebep}
-      </Text>
+      <Text className="mt-3 text-xl font-semibold leading-7 text-white">{sebep}</Text>
 
       <Text className="mt-3 text-xs text-white" style={{ opacity: 0.85 }}>
         Tüm sebepleri görmek için dokun · kalbe basınca yeni sebep 💗

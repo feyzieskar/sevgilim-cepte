@@ -22,10 +22,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Calendar, LocaleConfig } from "react-native-calendars";
 
-import {
-  EtkinlikFormModal,
-  EtkinlikFormVerisi,
-} from "@/components/calendar/EtkinlikFormModal";
+import { EtkinlikFormModal, EtkinlikFormVerisi } from "@/components/calendar/EtkinlikFormModal";
 import { EtkinlikSatiri } from "@/components/calendar/EtkinlikSatiri";
 import { OzelGunlerListesi } from "@/components/calendar/OzelGunlerListesi";
 import { EkranBasligi } from "@/components/ui/EkranBasligi";
@@ -33,10 +30,7 @@ import { kategoriBilgisi } from "@/constants/kategoriler";
 import { AYLAR, GUNLER, bugunISO, tarihUzun } from "@/constants/tarih";
 import { RADIUS, SHADOWS } from "@/constants/theme";
 import { hatirlaticiIptal, hatirlaticiPlanla } from "@/services/notifications";
-import {
-  CalendarEvent,
-  useCalendarStore,
-} from "@/store/calendarStore";
+import { CalendarEvent, useCalendarStore } from "@/store/calendarStore";
 import { usePalet, useThemeStore } from "@/store/useThemeStore";
 
 // --- Takvimi Türkçeleştir (modül yüklenince bir kez) ---
@@ -78,9 +72,7 @@ export default function TakvimEkrani() {
       const renk = kategoriBilgisi(e.category).renk;
       if (!sonuc[e.date]) sonuc[e.date] = { dots: [] };
       // Aynı gün/aynı kategori için tek nokta yeter
-      const varMi = sonuc[e.date].dots.some(
-        (d: { key: string }) => d.key === e.category
-      );
+      const varMi = sonuc[e.date].dots.some((d: { key: string }) => d.key === e.category);
       if (!varMi) {
         sonuc[e.date].dots.push({ key: e.category, color: renk });
       }
@@ -168,10 +160,7 @@ export default function TakvimEkrani() {
   };
 
   return (
-    <SafeAreaView
-      edges={["top"]}
-      style={{ flex: 1, backgroundColor: palet.arkaplan }}
-    >
+    <SafeAreaView edges={["top"]} style={{ flex: 1, backgroundColor: palet.arkaplan }}>
       <View className="px-5 pt-2">
         <EkranBasligi baslik="Takvim" altBaslik="Ortak planlarımız 💕" />
 
@@ -194,11 +183,7 @@ export default function TakvimEkrani() {
                 className="flex-1 flex-row items-center justify-center rounded-full py-2"
                 style={{ backgroundColor: aktif ? palet.primary : "transparent" }}
               >
-                <Ionicons
-                  name={s.ikon}
-                  size={16}
-                  color={aktif ? "#FFFFFF" : palet.metinIkincil}
-                />
+                <Ionicons name={s.ikon} size={16} color={aktif ? "#FFFFFF" : palet.metinIkincil} />
                 <Text
                   className="ml-1.5 font-semibold"
                   style={{ color: aktif ? "#FFFFFF" : palet.metinIkincil }}
@@ -269,10 +254,7 @@ export default function TakvimEkrani() {
             </View>
 
             {/* Seçili günün başlığı */}
-            <Text
-              className="mb-3 mt-6 text-lg font-bold"
-              style={{ color: palet.metin }}
-            >
+            <Text className="mb-3 mt-6 text-lg font-bold" style={{ color: palet.metin }}>
               {tarihUzun(seciliGun)}
             </Text>
 
@@ -280,12 +262,7 @@ export default function TakvimEkrani() {
             {gununEtkinlikleri.length > 0 ? (
               <View className="gap-3">
                 {gununEtkinlikleri.map((e) => (
-                  <EtkinlikSatiri
-                    key={e.id}
-                    event={e}
-                    onEdit={duzenle}
-                    onDelete={sil}
-                  />
+                  <EtkinlikSatiri key={e.id} event={e} onEdit={duzenle} onDelete={sil} />
                 ))}
               </View>
             ) : (

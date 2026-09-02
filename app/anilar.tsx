@@ -65,8 +65,7 @@ export default function AnilarEkrani() {
     [memories]
   );
 
-  const detayaGit = (m: Memory) =>
-    router.push({ pathname: "/ani/[id]", params: { id: m.id } });
+  const detayaGit = (m: Memory) => router.push({ pathname: "/ani/[id]", params: { id: m.id } });
 
   const kaydet = async (veri: AniFormVerisi) => {
     const yeni = await addMemory(veri);
@@ -86,11 +85,7 @@ export default function AnilarEkrani() {
   return (
     <SafeAreaView edges={["top"]} style={{ flex: 1, backgroundColor: palet.arkaplan }}>
       <View className="px-5 pt-2">
-        <EkranBasligi
-          baslik="Anılar"
-          altBaslik="Birlikte yarattığımız anlar 📸"
-          geriDugmesi
-        />
+        <EkranBasligi baslik="Anılar" altBaslik="Birlikte yarattığımız anlar 📸" geriDugmesi />
 
         {/* Filtre seçici */}
         <View
@@ -112,11 +107,7 @@ export default function AnilarEkrani() {
                 className="flex-1 flex-row items-center justify-center rounded-full py-2"
                 style={{ backgroundColor: aktif ? palet.primary : "transparent" }}
               >
-                <Ionicons
-                  name={s.ikon}
-                  size={15}
-                  color={aktif ? "#FFFFFF" : palet.metinIkincil}
-                />
+                <Ionicons name={s.ikon} size={15} color={aktif ? "#FFFFFF" : palet.metinIkincil} />
                 <Text
                   className="ml-1.5 text-sm font-semibold"
                   style={{ color: aktif ? "#FFFFFF" : palet.metinIkincil }}
@@ -184,7 +175,11 @@ export default function AnilarEkrani() {
             ) : (
               <View
                 className="mt-2 items-center py-12"
-                style={{ backgroundColor: palet.yuzey, borderRadius: RADIUS.lg, ...SHADOWS.yumusak }}
+                style={{
+                  backgroundColor: palet.yuzey,
+                  borderRadius: RADIUS.lg,
+                  ...SHADOWS.yumusak,
+                }}
               >
                 <Ionicons name="heart-outline" size={36} color={palet.metinIkincil} />
                 <Text className="mt-2" style={{ color: palet.metinIkincil }}>
@@ -206,11 +201,7 @@ export default function AnilarEkrani() {
       </Pressable>
 
       {/* Form modalı */}
-      <AniFormModal
-        visible={modalAcik}
-        onClose={() => setModalAcik(false)}
-        onKaydet={kaydet}
-      />
+      <AniFormModal visible={modalAcik} onClose={() => setModalAcik(false)} onKaydet={kaydet} />
     </SafeAreaView>
   );
 }

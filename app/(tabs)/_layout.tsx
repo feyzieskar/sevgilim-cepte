@@ -10,13 +10,7 @@
 
 import { Tabs } from "expo-router";
 import { useEffect } from "react";
-import {
-  Calendar,
-  Flame,
-  Home,
-  Menu,
-  MessageCircle,
-} from "lucide-react-native";
+import { Calendar, Flame, Home, Menu, MessageCircle } from "lucide-react-native";
 
 import { useCalendarStore } from "@/store/calendarStore";
 import { useChatStore } from "@/store/chatStore";
@@ -131,27 +125,21 @@ export default function TabsLayout() {
         name="index"
         options={{
           title: "Bugün Biz",
-          tabBarIcon: ({ color, size }) => (
-            <Home size={size} color={color} strokeWidth={2.2} />
-          ),
+          tabBarIcon: ({ color, size }) => <Home size={size} color={color} strokeWidth={2.2} />,
         }}
       />
       <Tabs.Screen
         name="streak"
         options={{
           title: "Streak",
-          tabBarIcon: ({ color, size }) => (
-            <Flame size={size} color={color} strokeWidth={2.2} />
-          ),
+          tabBarIcon: ({ color, size }) => <Flame size={size} color={color} strokeWidth={2.2} />,
         }}
       />
       <Tabs.Screen
         name="takvim"
         options={{
           title: "Takvim",
-          tabBarIcon: ({ color, size }) => (
-            <Calendar size={size} color={color} strokeWidth={2.2} />
-          ),
+          tabBarIcon: ({ color, size }) => <Calendar size={size} color={color} strokeWidth={2.2} />,
         }}
       />
       <Tabs.Screen
@@ -167,9 +155,7 @@ export default function TabsLayout() {
         name="menu"
         options={{
           title: "Menü",
-          tabBarIcon: ({ color, size }) => (
-            <Menu size={size} color={color} strokeWidth={2.2} />
-          ),
+          tabBarIcon: ({ color, size }) => <Menu size={size} color={color} strokeWidth={2.2} />,
         }}
       />
     </Tabs>

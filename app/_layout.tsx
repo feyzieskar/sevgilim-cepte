@@ -88,20 +88,15 @@ function useBildirimYonlendirme() {
     // Uygulama kapalıyken bildirime tıklayıp açıldıysa
     void Notifications.getLastNotificationResponseAsync().then((yanit) => {
       if (!yanit || !session) return;
-      const data = yanit.notification.request.content.data as
-        | Record<string, unknown>
-        | undefined;
+      const data = yanit.notification.request.content.data as Record<string, unknown> | undefined;
       bildirimeGoreYonlendir(router, data);
     });
 
     // Uygulama açık/arka plandayken tıklama
-    yanitDinleyici.current =
-      Notifications.addNotificationResponseReceivedListener((yanit) => {
-        const data = yanit.notification.request.content.data as
-          | Record<string, unknown>
-          | undefined;
-        bildirimeGoreYonlendir(router, data);
-      });
+    yanitDinleyici.current = Notifications.addNotificationResponseReceivedListener((yanit) => {
+      const data = yanit.notification.request.content.data as Record<string, unknown> | undefined;
+      bildirimeGoreYonlendir(router, data);
+    });
 
     return () => {
       yanitDinleyici.current?.remove();

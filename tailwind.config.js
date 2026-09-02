@@ -3,10 +3,7 @@
 // content: Hangi dosyalarda sınıf araması yapılacağını belirtir
 // theme.extend.colors: Uygulamanın romantik renk paletini Tailwind'e tanıtır
 module.exports = {
-  content: [
-    "./app/**/*.{js,jsx,ts,tsx}",
-    "./components/**/*.{js,jsx,ts,tsx}",
-  ],
+  content: ["./app/**/*.{js,jsx,ts,tsx}", "./components/**/*.{js,jsx,ts,tsx}"],
   presets: [require("nativewind/preset")],
   darkMode: "class", // Tema değişimini manuel kontrol edebilmek için
   theme: {

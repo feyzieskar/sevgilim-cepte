@@ -18,12 +18,7 @@ interface BucketKartiProps {
   onDelete: () => void;
 }
 
-export function BucketKarti({
-  item,
-  benimId,
-  onToggle,
-  onDelete,
-}: BucketKartiProps) {
+export function BucketKarti({ item, benimId, onToggle, onDelete }: BucketKartiProps) {
   const palet = usePalet();
   const kategori = kategoriBilgisi(item.category);
   const benim = item.createdBy === benimId;

@@ -63,11 +63,7 @@ export function AniKarti({ memory, onPress, onToggleFavorite }: AniKartiProps) {
         </View>
 
         {memory.note ? (
-          <Text
-            className="mt-1 text-base"
-            style={{ color: palet.metin }}
-            numberOfLines={2}
-          >
+          <Text className="mt-1 text-base" style={{ color: palet.metin }} numberOfLines={2}>
             {memory.note}
           </Text>
         ) : null}

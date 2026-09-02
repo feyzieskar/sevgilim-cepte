@@ -25,12 +25,7 @@ interface MesajBalonuProps {
   onayDisabled?: boolean;
 }
 
-export function MesajBalonu({
-  message,
-  onOnayla,
-  onReddet,
-  onayDisabled,
-}: MesajBalonuProps) {
+export function MesajBalonu({ message, onOnayla, onReddet, onayDisabled }: MesajBalonuProps) {
   const palet = usePalet();
 
   if (message.tip === "onay" && onOnayla && onReddet) {

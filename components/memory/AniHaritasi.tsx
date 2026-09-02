@@ -55,8 +55,9 @@ export function AniHaritasi({ memories, onPress }: AniHaritasiProps) {
       >
         <Ionicons name="map-outline" size={40} color={palet.metinIkincil} />
         <Text className="mt-2 px-8 text-center" style={{ color: palet.metinIkincil }}>
-          Henüz konumlu anı yok. Anı eklerken "Konumumu kullan" ile
-          gittiğiniz yerleri haritaya ekleyebilirsiniz 🗺️
+          {
+            'Henüz konumlu anı yok. Anı eklerken "Konumumu kullan" ile gittiğiniz yerleri haritaya ekleyebilirsiniz 🗺️'
+          }
         </Text>
       </View>
     );
@@ -71,11 +72,7 @@ export function AniHaritasi({ memories, onPress }: AniHaritasiProps) {
         ...SHADOWS.kart,
       }}
     >
-      <MapView
-        provider={PROVIDER_DEFAULT}
-        style={{ flex: 1 }}
-        initialRegion={baslangic}
-      >
+      <MapView provider={PROVIDER_DEFAULT} style={{ flex: 1 }} initialRegion={baslangic}>
         {memories.map((m) => (
           <Marker
             key={m.id}

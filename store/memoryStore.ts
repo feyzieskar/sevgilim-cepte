@@ -54,10 +54,7 @@ interface MemoryState {
   // Yeni anı ekler (gerekirse fotoğrafı yükler); kaydı döndürür
   addMemory: (girdi: MemoryGirdi) => Promise<Memory | null>;
   // Anıyı günceller (yeni fotoğraf varsa yükler)
-  updateMemory: (
-    id: string,
-    degisiklikler: Partial<MemoryGirdi>
-  ) => Promise<void>;
+  updateMemory: (id: string, degisiklikler: Partial<MemoryGirdi>) => Promise<void>;
   // Anıyı (ve fotoğrafını) siler
   deleteMemory: (id: string) => Promise<void>;
   // Favori durumunu değiştirir (buluta yazar)
@@ -160,20 +157,14 @@ export const useMemoryStore = create<MemoryState>((set, get) => ({
     if (photoUrl !== undefined) row.photo_url = photoUrl;
     if (degisiklikler.date !== undefined) row.date = degisiklikler.date;
     if (degisiklikler.note !== undefined) row.note = degisiklikler.note || null;
-    if (degisiklikler.isFavorite !== undefined)
-      row.is_favorite = degisiklikler.isFavorite;
+    if (degisiklikler.isFavorite !== undefined) row.is_favorite = degisiklikler.isFavorite;
     if (degisiklikler.locationName !== undefined)
       row.location_name = degisiklikler.locationName ?? null;
-    if (degisiklikler.latitude !== undefined)
-      row.latitude = degisiklikler.latitude ?? null;
-    if (degisiklikler.longitude !== undefined)
-      row.longitude = degisiklikler.longitude ?? null;
+    if (degisiklikler.latitude !== undefined) row.latitude = degisiklikler.latitude ?? null;
+    if (degisiklikler.longitude !== undefined) row.longitude = degisiklikler.longitude ?? null;
 
     if (Object.keys(row).length > 0) {
-      const { error } = await supabase
-        .from("memories")
-        .update(row)
-        .eq("id", id);
+      const { error } = await supabase.from("memories").update(row).eq("id", id);
       if (error) {
         console.warn("[memoryStore] updateMemory hatası:", error.message);
       }
@@ -183,9 +174,7 @@ export const useMemoryStore = create<MemoryState>((set, get) => ({
     const { photoBase64: _atla, ...modelDegisiklikleri } = degisiklikler;
     set((s) => ({
       memories: s.memories.map((m) =>
-        m.id === id
-          ? { ...m, ...modelDegisiklikleri, photoUri: photoUrl ?? m.photoUri }
-          : m
+        m.id === id ? { ...m, ...modelDegisiklikleri, photoUri: photoUrl ?? m.photoUri } : m
       ),
     }));
   },
@@ -211,9 +200,7 @@ export const useMemoryStore = create<MemoryState>((set, get) => ({
 
     // İyimser güncelle, sonra buluta yaz
     set((s) => ({
-      memories: s.memories.map((m) =>
-        m.id === id ? { ...m, isFavorite: yeniDeger } : m
-      ),
+      memories: s.memories.map((m) => (m.id === id ? { ...m, isFavorite: yeniDeger } : m)),
     }));
 
     const { error } = await supabase
@@ -225,9 +212,7 @@ export const useMemoryStore = create<MemoryState>((set, get) => ({
       console.warn("[memoryStore] toggleFavorite hatası:", error.message);
       // Hata olursa geri al
       set((s) => ({
-        memories: s.memories.map((m) =>
-          m.id === id ? { ...m, isFavorite: !yeniDeger } : m
-        ),
+        memories: s.memories.map((m) => (m.id === id ? { ...m, isFavorite: !yeniDeger } : m)),
       }));
     }
   },
@@ -246,8 +231,6 @@ export const useMemoryStore = create<MemoryState>((set, get) => ({
   },
 
   getMemoriesWithLocation: () => {
-    return get().memories.filter(
-      (m) => m.latitude != null && m.longitude != null
-    );
+    return get().memories.filter((m) => m.latitude != null && m.longitude != null);
   },
 }));
