@@ -9,6 +9,7 @@
 
 > A private two-user iOS companion app built with React Native, Expo, TypeScript and Supabase.
 
+
 Sevgilim Cepte brings together shared calendar management, photo memories with location tagging, mood tracking, daily photo streaks, a surprise box, and an AI-powered conversational assistant — all synchronized in real-time between two linked partners.
 
 ---
